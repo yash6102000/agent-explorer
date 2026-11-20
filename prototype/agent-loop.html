@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent Explorer</title>
+<meta name="description" content="Step-by-step interactive lessons on how AI agents work. Simulated, no API keys.">
+<style>
+:root{
+  --bg:#f7f7f5; --panel:#ffffff; --ink:#1c1c1a; --muted:#6b6b66; --line:#dcdcd6;
+  --accent:#4f46e5; --accent-soft:#e8e7fb;
+  --user:#0f766e; --agent:#4f46e5; --model:#b45309; --tool:#be185d;
+  --c-system:#64748b; --c-tools:#8b5cf6; --c-user:#0f766e; --c-assistant:#b45309; --c-tool:#be185d;
+  --code-bg:#f1f1ee; --key:#4338ca; --str:#047857; --num:#b45309;
+  --warn:#b91c1c;
+}
+:root[data-theme="dark"]{
+  --bg:#141416; --panel:#1d1d21; --ink:#ececea; --muted:#9a9a94; --line:#33333a;
+  --accent:#8b85ff; --accent-soft:#2a2a4a;
+  --user:#2dd4bf; --agent:#8b85ff; --model:#fbbf24; --tool:#f472b6;
+  --c-system:#94a3b8; --c-tools:#a78bfa; --c-user:#2dd4bf; --c-assistant:#fbbf24; --c-tool:#f472b6;
+  --code-bg:#26262b; --key:#a5b4fc; --str:#6ee7b7; --num:#fcd34d;
+  --warn:#f87171;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+button{font:inherit;color:inherit;cursor:pointer}
+header{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--line);background:var(--panel)}
+h1{font-size:18px;margin:0}
+h1 small{font-weight:400;color:var(--muted);margin-left:8px}
+.badge{font-size:12px;padding:2px 8px;border-radius:99px;border:1px solid var(--line);color:var(--muted)}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;padding:12px 16px 0}
+.tab{border:1px solid var(--line);background:var(--panel);padding:6px 12px;border-radius:8px;font-size:14px}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:#fff}
+main{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:16px;padding:16px}
+@media(max-width:860px){main{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.card h2{font-size:13px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);margin:0;padding:10px 14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+.lesson-intro{padding:0 16px;color:var(--muted);max-width:80ch}
+.lesson-intro b{color:var(--ink)}
+.controls{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--line)}
+.btn{border:1px solid var(--line);background:var(--bg);border-radius:8px;padding:5px 11px;min-width:38px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn:disabled{opacity:.4;cursor:default}
+.spacer{flex:1}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--bg);padding:5px 10px;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+.progress{height:3px;background:var(--line)}
+.progress div{height:100%;background:var(--accent);transition:width .25s}
+.caption{padding:12px 14px;border-bottom:1px solid var(--line);min-height:78px}
+.caption .t{font-weight:600}
+.caption .n{color:var(--muted);margin-top:2px}
+.stage{overflow:auto;max-height:520px}
+svg text{font-family:inherit}
+.arrow{cursor:pointer}
+.arrow:hover .lbl{text-decoration:underline}
+.sel-bg{fill:var(--accent-soft)}
+.edge-active{stroke-dasharray:6 5;animation:dash .8s linear infinite}
+@keyframes dash{to{stroke-dashoffset:-11}}
+@media(prefers-reduced-motion:reduce){.edge-active{animation:none}}
+pre.json{margin:0;padding:12px 14px;background:var(--code-bg);font:12.5px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace;overflow:auto;max-height:340px;white-space:pre-wrap;word-break:break-word}
+.k{color:var(--key)}.s{color:var(--str)}.nm{color:var(--num)}
+.hl{background:var(--accent-soft);border-radius:3px;outline:1px solid var(--accent)}
+.insp-meta{padding:10px 14px;font-size:13px;color:var(--muted);border-bottom:1px solid var(--line)}
+.fields{padding:10px 14px;margin:0;list-style:none;font-size:13px}
+.fields li{padding:3px 0}
+.fields code{background:var(--code-bg);padding:1px 5px;border-radius:4px}
+.ctxbar{display:flex;height:26px;margin:12px 14px 6px;border-radius:6px;overflow:hidden;background:var(--code-bg);border:1px solid var(--line)}
+.ctxbar div{height:100%;transition:width .35s}
+.ctxnum{padding:0 14px 8px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between}
+.ctxnum.full b{color:var(--warn)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;padding:0 14px 12px;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
+.ctxlist{margin:0;padding:0 14px 12px;list-style:none;font-size:12.5px;max-height:190px;overflow:auto}
+.ctxlist li{display:flex;gap:8px;padding:2px 0;border-top:1px dashed var(--line)}
+.ctxlist li:first-child{border-top:0}
+.ctxlist .tk{margin-left:auto;color:var(--muted);font-variant-numeric:tabular-nums}
+.ctxlist li.new{font-weight:600}
+.ctxlist li.dropped{text-decoration:line-through;color:var(--muted)}
+footer{padding:8px 16px 28px;color:var(--muted);font-size:13px}
+.sim{border-left:3px solid var(--model);padding:6px 12px;margin:0 16px 0;background:var(--panel);border-radius:0 8px 8px 0;font-size:13px;color:var(--muted)}
+.right{display:flex;flex-direction:column;gap:16px;min-width:0}
+</style>
+</head>
+<body>
+<header>
+  <h1>Agent Explorer<small>how AI agents work, step by step</small></h1>
+  <div style="display:flex;gap:8px;align-items:center">
+    <span class="badge">Simulated scenarios — no live model</span>
+    <button class="btn" id="theme" aria-label="Toggle theme">◐</button>
+  </div>
+</header>
+
+<div class="tabs" id="tabs" role="tablist"></div>
+<p class="lesson-intro" id="intro"></p>
+
+<main>
+  <section class="card">
+    <h2><span>Walkthrough</span>
+      <span class="seg" id="viewseg">
+        <button data-v="seq" aria-pressed="true">Sequence</button>
+        <button data-v="map" aria-pressed="false">Map</button>
+      </span>
+    </h2>
+    <div class="controls">
+      <button class="btn" id="first" title="Restart (Home)">⏮</button>
+      <button class="btn" id="prev" title="Back (←)">◀</button>
+      <button class="btn primary" id="play" title="Play / pause (Space)">▶ Play</button>
+      <button class="btn" id="next" title="Forward (→)">▶|</button>
+      <span class="spacer"></span>
+      <span class="seg" id="speed">
+        <button data-s="0.5" aria-pressed="false">0.5×</button>
+        <button data-s="1" aria-pressed="true">1×</button>
+        <button data-s="2" aria-pressed="false">2×</button>
+      </span>
+      <span id="count" class="badge"></span>
+    </div>
+    <div class="progress"><div id="bar"></div></div>
+    <div class="caption" aria-live="polite"><div class="t" id="ctitle"></div><div class="n" id="cnote"></div></div>
+    <div class="stage" id="stage"></div>
+  </section>
+
+  <div class="right">
+    <section class="card">
+      <h2>Inspector <span id="inspwho" style="text-transform:none;letter-spacing:0"></span></h2>
+      <div class="insp-meta" id="inspmeta">Click any arrow to inspect the message.</div>
+      <pre class="json" id="json"></pre>
+      <ul class="fields" id="fields"></ul>
+    </section>
+    <section class="card">
+      <h2>Context window <span id="ctxtitle" style="text-transform:none;letter-spacing:0"></span></h2>
+      <div class="ctxbar" id="ctxbar"></div>
+      <div class="ctxnum" id="ctxnum"></div>
+      <div class="legend" id="legend"></div>
+      <ul class="ctxlist" id="ctxlist"></ul>
+    </section>
+  </div>
+</main>
+<footer>Everything here is scripted and simplified to show the shape of real agent traffic. Token counts and message bodies are illustrative. Keyboard: Space play/pause, ←/→ step, Home restart.</footer>
+
+<script>
+"use strict";
+/* ---------- Lesson data ---------- */
+const ACTORS = {
+  user:  {name:"User",  color:"var(--user)",  x:.15,y:.15},
+  agent: {name:"Agent harness", color:"var(--agent)", x:.5, y:.5},
+  model: {name:"Model (LLM)",  color:"var(--model)", x:.85,y:.15},
+  tool:  {name:"Tool",  color:"var(--tool)",  x:.5, y:.9},
+};
+const KINDS = {system:"System prompt",tools:"Tool definitions",user:"User",assistant:"Assistant",tool:"Tool result"};
+
+const TOOLS_DEF = [{name:"get_weather",description:"Current weather for a city",input_schema:{type:"object",properties:{city:{type:"string"}},required:["city"]}}];
+
+const LESSONS = [
+{
+  id:"loop", title:"1. The agent loop", actors:["user","agent","model","tool"], limit:8000,
+  intro:"An agent is a <b>loop</b>: send the conversation to the model, run any tool it asks for, append the result, and ask again until it answers in plain text.",
+  steps:[
+   {from:"user",to:"agent",label:"Task",title:"The user gives a task",
+    note:"The harness (your agent program) keeps the conversation. Nothing has gone to the model yet.",
+    payload:{role:"user",content:"Do I need an umbrella in Paris today?"},
+    ctx:[{kind:"system",label:"System prompt",tokens:900},{kind:"tools",label:"Tool: get_weather",tokens:700},{kind:"user",label:"“Do I need an umbrella…”",tokens:40}]},
+   {from:"agent",to:"model",label:"Request #1",title:"Harness calls the model",
+    note:"Every turn sends the whole conversation again plus the tool list. The model has no memory outside this payload.",
+    payload:{model:"example-model",system:"You are a helpful assistant.",tools:TOOLS_DEF,messages:[{role:"user",content:"Do I need an umbrella in Paris today?"}]},
+    hl:"messages"},
+   {from:"model",to:"agent",label:"tool_use",title:"Model decides to use a tool",
+    note:"Think → act. The model can't check the weather itself, so it replies with a structured request instead of text.",
+    payload:{stop_reason:"tool_use",content:[{type:"text",text:"I'll check the current weather in Paris."},{type:"tool_use",id:"toolu_01",name:"get_weather",input:{city:"Paris"}}]},
+    hl:"stop_reason",
+    ctx:[{kind:"assistant",label:"tool_use get_weather",tokens:70}]},
+   {from:"agent",to:"tool",label:"Run get_weather",title:"Harness runs the tool",
+    note:"The model never executes anything. Your code does, and decides whether it is allowed.",
+    payload:{call:"get_weather",args:{city:"Paris"}}},
+   {from:"tool",to:"agent",label:"Result",title:"Tool returns an observation",
+    note:"Observe. The output is plain data that will be fed back to the model.",
+    payload:{city:"Paris",temp_c:11,condition:"light rain",precip_chance:0.8},
+    ctx:[{kind:"tool",label:"tool_result (weather)",tokens:60}]},
+   {from:"agent",to:"model",label:"Request #2",title:"Harness loops: call the model again",
+    note:"Repeat. The result is appended as a tool_result message and the full history is sent once more.",
+    payload:{model:"example-model",tools:"[…same as before…]",messages:[
+      {role:"user",content:"Do I need an umbrella in Paris today?"},
+      {role:"assistant",content:[{type:"tool_use",id:"toolu_01",name:"get_weather",input:{city:"Paris"}}]},
+      {role:"user",content:[{type:"tool_result",tool_use_id:"toolu_01",content:"{\"temp_c\":11,\"condition\":\"light rain\",\"precip_chance\":0.8}"}]}]},
+    hl:"tool_result"},
+   {from:"model",to:"agent",label:"end_turn",title:"Model answers: the loop ends",
+    note:"No tool_use this time (stop_reason is end_turn), so the harness stops looping.",
+    payload:{stop_reason:"end_turn",content:[{type:"text",text:"Yes — light rain with an 80% chance. Bring an umbrella."}]},
+    hl:"stop_reason",
+    ctx:[{kind:"assistant",label:"Final answer",tokens:30}]},
+   {from:"agent",to:"user",label:"Answer",title:"Agent replies to the user",
+    note:"Real agents may loop dozens of times before this point. The stop condition is simply “the model asked for no more tools”.",
+    payload:{role:"assistant",content:"Yes — light rain with an 80% chance. Bring an umbrella."}},
+  ]
+},
+{
+  id:"ctx", title:"2. The context window", actors:["user","agent","model","tool"], limit:8000,
+  intro:"The model only sees what fits in its <b>context window</b>. Every message and tool result stays in it, so long tasks fill it up. Watch the bar on the right.",
+  steps:[
+   {from:"user",to:"agent",label:"Task",title:"Fixed costs come first",
+    note:"System prompt and tool definitions are resent on every turn. They are spent before the user types anything.",
+    payload:{role:"user",content:"Why does checkout fail when the cart is empty?"},
+    ctx:[{kind:"system",label:"System prompt",tokens:1200},{kind:"tools",label:"Tool definitions (6)",tokens:1800},{kind:"user",label:"“Why does checkout fail…”",tokens:30}]},
+   {from:"model",to:"agent",label:"read_file",title:"Model reads a file",
+    note:"The model asks to read a source file. Its request is small…",
+    payload:{type:"tool_use",name:"read_file",input:{path:"src/checkout.ts"}},
+    ctx:[{kind:"assistant",label:"tool_use read_file",tokens:60}]},
+   {from:"tool",to:"agent",label:"File (2.1k tok)",title:"…but the result is big",
+    note:"File contents are pasted into the context verbatim. Tool results are usually the biggest consumers.",
+    payload:{type:"tool_result",content:"export function checkout(cart) {\n  const total = cart.items.reduce(...)\n  …  // 180 lines\n}"},
+    ctx:[{kind:"tool",label:"tool_result src/checkout.ts",tokens:2100}]},
+   {from:"model",to:"agent",label:"grep",title:"More investigation",
+    note:"Each step the model takes adds to the pile. Nothing is removed automatically.",
+    payload:{type:"tool_use",name:"grep",input:{pattern:"cart.items",path:"src/"}},
+    ctx:[{kind:"assistant",label:"tool_use grep",tokens:50},{kind:"tool",label:"tool_result grep (41 matches)",tokens:1500}]},
+   {from:"model",to:"agent",label:"read_file",title:"A second large file",
+    note:"We are now past 85% of the window. Every later request will resend all of this.",
+    payload:{type:"tool_use",name:"read_file",input:{path:"src/cart.ts"}},
+    ctx:[{kind:"assistant",label:"tool_use read_file",tokens:60},{kind:"tool",label:"tool_result src/cart.ts",tokens:1000}]},
+   {from:"agent",to:"model",label:"Request",title:"Near the limit",
+    note:"Almost no room is left for the model's answer. Without action, the next big tool result would overflow. See lesson “Compaction” (planned) for the fix.",
+    payload:{usage:{input_tokens:7720,context_limit:8000,remaining:280}},
+    hl:"remaining"},
+  ]
+},
+{
+  id:"toolcall", title:"3. Anatomy of a tool call", actors:["agent","model","tool"], limit:8000,
+  intro:"A tool call is just structured text. The model emits <b>JSON that matches a schema</b>; the harness validates it, runs it, and returns a <b>tool_result</b> — including errors.",
+  steps:[
+   {from:"agent",to:"model",label:"tools[]",title:"1. Tools are described to the model",
+    note:"Each tool has a name, a description, and a JSON Schema for its input. The model picks tools based on these descriptions.",
+    payload:{tools:[{name:"get_weather",description:"Current weather for a city",input_schema:{type:"object",properties:{city:{type:"string"},units:{type:"string",enum:["c","f"]}},required:["city","units"]}}]},
+    hl:"input_schema",
+    fields:{name:"Identifier the model must echo back.",description:"How the model decides when to use it.",input_schema:"JSON Schema the arguments must satisfy."},
+    ctx:[{kind:"system",label:"System prompt",tokens:900},{kind:"tools",label:"Tool: get_weather",tokens:700},{kind:"user",label:"User question",tokens:40}]},
+   {from:"model",to:"agent",label:"tool_use (bad)",title:"2. Model emits a tool_use block",
+    note:"Here the model forgets the required “units” field. Models make mistakes; the harness must not trust output blindly.",
+    payload:{type:"tool_use",id:"toolu_07",name:"get_weather",input:{city:"Paris"}},
+    hl:"input",
+    fields:{id:"Unique ID; the result must reference it.",name:"Which tool to run.",input:"Arguments. Here missing required “units”."},
+    ctx:[{kind:"assistant",label:"tool_use (invalid)",tokens:60}]},
+   {from:"agent",to:"agent",label:"validate",title:"3. Harness validates the input",
+    note:"Validation against the schema fails. The tool is not run.",
+    payload:{valid:false,errors:["input: missing required property 'units'"]},
+    hl:"errors"},
+   {from:"agent",to:"model",label:"tool_result (error)",title:"4. Error goes back as a result",
+    note:"Errors are fed back with is_error so the model can read them and self-correct. This is how agents recover.",
+    payload:{type:"tool_result",tool_use_id:"toolu_07",is_error:true,content:"Invalid input: missing required property 'units' (c or f)"},
+    hl:"is_error",
+    fields:{tool_use_id:"Links this result to the tool_use above.",is_error:"Tells the model the call failed.",content:"Text the model reads next."},
+    ctx:[{kind:"tool",label:"tool_result (error)",tokens:45}]},
+   {from:"model",to:"agent",label:"tool_use (fixed)",title:"5. Model retries correctly",
+    note:"Having read the error, the model supplies the missing field.",
+    payload:{type:"tool_use",id:"toolu_08",name:"get_weather",input:{city:"Paris",units:"c"}},
+    hl:"units",
+    ctx:[{kind:"assistant",label:"tool_use (fixed)",tokens:60}]},
+   {from:"agent",to:"tool",label:"Run get_weather",title:"6. Harness executes it",
+    note:"Now valid, the harness actually runs the function. This is also where permissions and sandboxing apply.",
+    payload:{call:"get_weather",args:{city:"Paris",units:"c"}}},
+   {from:"tool",to:"agent",label:"Result",title:"7. Tool returns output",
+    note:"The output is wrapped into a tool_result and sent on the next request.",
+    payload:{type:"tool_result",tool_use_id:"toolu_08",content:"11°C, light rain"},
+    fields:{tool_use_id:"Matches toolu_08 from the successful call."},
+    ctx:[{kind:"tool",label:"tool_result",tokens:40}]},
+  ]
+}
+];
+
+/* ---------- State ---------- */
+const $ = id => document.getElementById(id);
+let li = 0, cur = 0, playing = false, timer = null, speed = 1, view = "seq", sel = 0;
+const lesson = () => LESSONS[li];
+
+/* ---------- Helpers ---------- */
+function esc(s){return String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]))}
+function jsonHtml(obj, hl){
+  const lines = JSON.stringify(obj,null,2).split("\n");
+  return lines.map(l=>{
+    let h = esc(l)
+      .replace(/^(\s*)"([^"]+)":/,'$1<span class="k">"$2"</span>:')
+      .replace(/: ("(?:[^"\\]|\\.)*")(,?)$/,': <span class="s">$1</span>$2')
+      .replace(/: (-?\d+(?:\.\d+)?|true|false|null)(,?)$/,': <span class="nm">$1</span>$2');
+    if(hl && l.includes(hl)) h = '<span class="hl">'+h+'</span>';
+    return h;
+  }).join("\n");
+}
+function ctxUpTo(n){ // items added by steps 0..n (n=-1 → none)
+  const items=[]; for(let i=0;i<=n;i++) (lesson().steps[i].ctx||[]).forEach(c=>items.push({...c,step:i}));
+  return items;
+}
+
+/* ---------- Rendering ---------- */
+function renderTabs(){
+  $("tabs").innerHTML = LESSONS.map((l,i)=>`<button class="tab" role="tab" aria-selected="${i===li}" data-i="${i}">${l.title}</button>`).join("");
+  $("intro").innerHTML = lesson().intro;
+}
+
+function renderStage(){
+  const L = lesson(), st = $("stage");
+  const acts = L.actors, W = 640, col = W/acts.length;
+  const xs = Object.fromEntries(acts.map((a,i)=>[a,col*i+col/2]));
+  if(view==="seq"){
+    const row=58, top=64, H = top + Math.max(cur+1,1)*row + 20;
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;min-width:520px" role="img" aria-label="Sequence diagram">
+      <defs>${acts.map(a=>`<marker id="ah-${a}" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="context-stroke"/></marker>`).join("")}</defs>`;
+    acts.forEach(a=>{
+      s += `<rect x="${xs[a]-62}" y="10" width="124" height="30" rx="8" fill="none" stroke="${ACTORS[a].color}" stroke-width="1.5"/>
+      <text x="${xs[a]}" y="30" text-anchor="middle" font-size="13" font-weight="600" fill="${ACTORS[a].color}">${ACTORS[a].name}</text>
+      <line x1="${xs[a]}" y1="40" x2="${xs[a]}" y2="${H}" stroke="var(--line)" stroke-dasharray="4 4"/>`;
+    });
+    for(let i=0;i<=cur;i++){
+      const p=L.steps[i], y=top+i*row, a=xs[p.from], b=xs[p.to], c=ACTORS[p.from].color, isSel=i===sel;
+      s += `<g class="arrow" data-i="${i}" tabindex="0" role="button" aria-label="Step ${i+1}: ${esc(p.label)}">
+        ${isSel?`<rect class="sel-bg" x="0" y="${y-30}" width="${W}" height="${row-2}" rx="6"/>`:""}
+        <rect x="0" y="${y-30}" width="${W}" height="${row}" fill="transparent"/>
+        <text x="14" y="${y-14}" font-size="11" fill="var(--muted)">${i+1}</text>`;
+      if(p.from===p.to){
+        s += `<path d="M${a} ${y-8} h46 v24 h-46" fill="none" stroke="${c}" stroke-width="2" marker-end="url(#ah-${p.from})"/>
+        <text class="lbl" x="${a+54}" y="${y+8}" font-size="12.5" fill="var(--ink)">${esc(p.label)}</text>`;
+      } else {
+        const dir = b>a?1:-1;
+        s += `<line x1="${a}" y1="${y+6}" x2="${b-dir*2}" y2="${y+6}" stroke="${c}" stroke-width="2" marker-end="url(#ah-${p.from})"/>
+        <text class="lbl" x="${(a+b)/2}" y="${y-4}" text-anchor="middle" font-size="12.5" fill="var(--ink)">${esc(p.label)}</text>`;
+      }
+      s += `</g>`;
+    }
+    s += `</svg>`;
+    st.innerHTML = s;
+    st.scrollTop = st.scrollHeight;
+  } else {
+    const H=340, px = a=>ACTORS[a].x*W, py = a=>ACTORS[a].y*H;
+    const used = L.actors;
+    let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" style="display:block;min-width:520px" role="img" aria-label="Map of who talks to whom">`;
+    const seen = new Set();
+    for(let i=0;i<=cur;i++){const p=L.steps[i]; if(p.from!==p.to) seen.add([p.from,p.to].sort().join("|"));}
+    seen.forEach(k=>{const [a,b]=k.split("|");
+      s+=`<line x1="${px(a)}" y1="${py(a)}" x2="${px(b)}" y2="${py(b)}" stroke="var(--line)" stroke-width="3"/>`;});
+    const p=L.steps[sel];
+    if(p && sel<=cur && p.from!==p.to){
+      s+=`<line class="edge-active" x1="${px(p.from)}" y1="${py(p.from)}" x2="${px(p.to)}" y2="${py(p.to)}" stroke="${ACTORS[p.from].color}" stroke-width="3.5"/>
+      <g><rect x="${(px(p.from)+px(p.to))/2-62}" y="${(py(p.from)+py(p.to))/2-13}" width="124" height="26" rx="13" fill="var(--panel)" stroke="${ACTORS[p.from].color}"/>
+      <text x="${(px(p.from)+px(p.to))/2}" y="${(py(p.from)+py(p.to))/2+4}" text-anchor="middle" font-size="12" fill="var(--ink)">${esc(p.label)}</text></g>`;
+    }
+    used.forEach(a=>{
+      const active = p && sel<=cur && (p.from===a||p.to===a);
+      s+=`<g><rect x="${px(a)-62}" y="${py(a)-20}" width="124" height="40" rx="10" fill="var(--panel)" stroke="${ACTORS[a].color}" stroke-width="${active?3:1.5}"/>
+      <text x="${px(a)}" y="${py(a)+5}" text-anchor="middle" font-size="13" font-weight="600" fill="${ACTORS[a].color}">${ACTORS[a].name}</text></g>`;
+    });
+    s+=`</svg>`;
+    st.innerHTML = s;
+  }
+}
+
+function renderCaption(){
+  const p = lesson().steps[sel];
+  $("ctitle").textContent = cur<0 ? "Press Play or → to begin" : p.title;
+  $("cnote").textContent = cur<0 ? "Each step shows one message. Click an arrow to inspect it." : p.note;
+  $("count").textContent = `${Math.max(cur+1,0)} / ${lesson().steps.length}`;
+  $("bar").style.width = (Math.max(cur+1,0)/lesson().steps.length*100)+"%";
+  $("prev").disabled = cur<0; $("first").disabled = cur<0;
+  $("next").disabled = cur>=lesson().steps.length-1;
+  $("play").textContent = playing ? "⏸ Pause" : (cur>=lesson().steps.length-1 ? "↻ Replay" : "▶ Play");
+}
+
+function renderInspector(){
+  const p = lesson().steps[sel];
+  if(cur<0||!p){ $("inspmeta").textContent="Click any arrow to inspect the message."; $("json").innerHTML=""; $("fields").innerHTML=""; $("inspwho").textContent=""; return; }
+  $("inspwho").textContent = `step ${sel+1}`;
+  $("inspmeta").innerHTML = `<b style="color:${ACTORS[p.from].color}">${ACTORS[p.from].name}</b> → <b style="color:${ACTORS[p.to].color}">${ACTORS[p.to].name}</b> · ${esc(p.label)}`;
+  $("json").innerHTML = jsonHtml(p.payload,p.hl);
+  $("fields").innerHTML = p.fields ? Object.entries(p.fields).map(([k,v])=>`<li><code>${esc(k)}</code> — ${esc(v)}</li>`).join("") : "";
+}
+
+function renderContext(){
+  const L=lesson(), items=ctxUpTo(sel<=cur?sel:cur), total=items.reduce((a,c)=>a+c.tokens,0), limit=L.limit;
+  $("ctxtitle").textContent = `at step ${Math.max(sel+1,0)}`;
+  const byKind={}; items.forEach(c=>byKind[c.kind]=(byKind[c.kind]||0)+c.tokens);
+  $("ctxbar").innerHTML = Object.keys(KINDS).filter(k=>byKind[k]).map(k=>`<div title="${KINDS[k]}: ${byKind[k]}" style="width:${byKind[k]/limit*100}%;background:var(--c-${k})"></div>`).join("");
+  const pct=Math.round(total/limit*100);
+  $("ctxnum").className="ctxnum"+(pct>=85?" full":"");
+  $("ctxnum").innerHTML=`<span><b>${total.toLocaleString()}</b> / ${limit.toLocaleString()} tokens (illustrative)</span><span>${pct}%${pct>=85?" — nearly full":""}</span>`;
+  $("legend").innerHTML = Object.entries(KINDS).map(([k,n])=>`<span><i style="background:var(--c-${k})"></i>${n}</span>`).join("");
+  $("ctxlist").innerHTML = items.map(c=>`<li class="${c.step===sel?"new":""}"><i style="width:8px;height:8px;border-radius:2px;margin-top:6px;background:var(--c-${c.kind});flex:none"></i><span>${esc(c.label)}</span><span class="tk">${c.tokens.toLocaleString()}</span></li>`).join("") || `<li style="color:var(--muted)">Empty</li>`;
+}
+
+function render(){ renderTabs(); renderStage(); renderCaption(); renderInspector(); renderContext(); }
+function renderLight(){ renderStage(); renderCaption(); renderInspector(); renderContext(); }
+
+/* ---------- Playback ---------- */
+function go(n){ cur=Math.max(-1,Math.min(lesson().steps.length-1,n)); sel=Math.max(cur,0); if(cur<0) sel=0; renderLight(); }
+function stop(){ playing=false; clearInterval(timer); timer=null; }
+function start(){
+  if(cur>=lesson().steps.length-1) go(-1);
+  playing=true; renderCaption();
+  const tick=()=>{ if(cur>=lesson().steps.length-1){stop();renderCaption();return;} go(cur+1); };
+  tick(); clearInterval(timer); timer=setInterval(tick,3200/speed);
+}
+function setLesson(i){ stop(); li=i; cur=-1; sel=0; render(); }
+
+/* ---------- Events ---------- */
+$("tabs").addEventListener("click",e=>{const b=e.target.closest(".tab"); if(b) setLesson(+b.dataset.i);});
+$("play").onclick=()=>playing?(stop(),renderCaption()):start();
+$("next").onclick=()=>{stop();go(cur+1)};
+$("prev").onclick=()=>{stop();go(cur-1)};
+$("first").onclick=()=>{stop();go(-1)};
+$("speed").addEventListener("click",e=>{const b=e.target.closest("button"); if(!b) return; speed=+b.dataset.s;
+  [...$("speed").children].forEach(x=>x.setAttribute("aria-pressed",x===b)); if(playing){stop();start();}});
+$("viewseg").addEventListener("click",e=>{const b=e.target.closest("button"); if(!b) return; view=b.dataset.v;
+  [...$("viewseg").children].forEach(x=>x.setAttribute("aria-pressed",x===b)); renderStage();});
+$("stage").addEventListener("click",e=>{const g=e.target.closest(".arrow"); if(!g) return; sel=+g.dataset.i; renderLight();});
+$("stage").addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.classList.contains("arrow")){e.preventDefault(); sel=+e.target.dataset.i; renderLight();}});
+document.addEventListener("keydown",e=>{
+  if(e.target.closest("button,.arrow")&&e.key===" ") return;
+  if(e.key===" "){e.preventDefault();$("play").click();}
+  else if(e.key==="ArrowRight"){stop();go(cur+1)}
+  else if(e.key==="ArrowLeft"){stop();go(cur-1)}
+  else if(e.key==="Home"){stop();go(-1)}
+});
+function applyTheme(t){ document.documentElement.dataset.theme=t; try{localStorage.setItem("theme",t)}catch(e){} }
+$("theme").onclick=()=>applyTheme(document.documentElement.dataset.theme==="dark"?"light":"dark");
+(function(){ let t; try{t=localStorage.getItem("theme")}catch(e){}
+  applyTheme(t|| (matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light")); })();
+
+setLesson(0);
+</script>
+</body>
+</html>
