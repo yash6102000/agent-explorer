@@ -6,17 +6,16 @@ export function ContextPacker() {
   const lv = PACK_LEVELS[li];
   const [picked, setPicked] = useState<string[]>(["sys"]);
   const [done, setDone] = useState(false);
-  const [msg, setMsg] = useState("");
   const used = lv.items.filter((i) => picked.includes(i.id)).reduce((a, i) => a + i.tokens, 0);
 
-  const reset = (n: number) => { setLi(n); setPicked(["sys"]); setDone(false); setMsg(""); };
+  const reset = (n: number) => { setLi(n); setPicked(["sys"]); setDone(false); };
   const toggle = (id: string) => {
     if (done) return;
     const it = lv.items.find((i) => i.id === id)!;
     if (it.kind === "fixed") return;
-    if (picked.includes(id)) { setPicked(picked.filter((p) => p !== id)); setMsg(""); return; }
-    if (used + it.tokens > lv.budget) { setMsg(`No room: ${it.label} needs ${it.tokens} tokens but only ${lv.budget - used} are free. Drop something first.`); return; }
-    setPicked([...picked, id]); setMsg("");
+    if (picked.includes(id)) { setPicked(picked.filter((p) => p !== id)); return; }
+    if (used + it.tokens > lv.budget) return; // shown as "won't fit" on the card, so no popup needed
+    setPicked([...picked, id]);
   };
 
   const chosen = lv.items.filter((i) => picked.includes(i.id));
@@ -27,6 +26,8 @@ export function ContextPacker() {
   const useful = chosen.filter((i) => i.kind === "need").reduce((a, i) => a + i.tokens, 0);
   const outcome = hasBad ? "bad" : missing.length ? "thin" : noise > useful * 0.5 ? "diluted" : "good";
   const stars = outcome === "good" ? (noise === 0 ? 3 : 2) : outcome === "diluted" ? 1 : 0;
+  const why = { 3: "Perfect: everything the question needs, and nothing extra.", 2: "Good, but extra items took space they did not need.", 1: "The answer wandered: noise outweighed the facts.", 0: outcome === "bad" ? "Poisoned text got in and steered the model." : "A needed fact was left out, so the model guessed." }[stars] as string;
+  const free = lv.budget - used;
   const answer = { good: lv.good, thin: lv.thin, diluted: lv.diluted, bad: lv.hijacked }[outcome];
 
   return (
@@ -36,7 +37,11 @@ export function ContextPacker() {
           <span className="tag ch-technique">Play · Context Packer</span>
           <h2>{lv.title}</h2>
           <p className="pk-q">User asks: <b>“{lv.question}”</b></p>
-          <p className="pk-sub">The window holds <b>{lv.budget.toLocaleString()}</b> tokens. Click items to pack them. Include what the model needs, leave out what it does not.</p>
+          <ol className="pk-how">
+            <li><b>Click</b> items on the left to put them in the context window.</li>
+            <li>The window is small (<b>{lv.budget.toLocaleString()}</b> tokens), so you can't take everything.</li>
+            <li>Press <b>Send</b>. Win by packing <b>everything the question needs and nothing else</b>.</li>
+          </ol>
         </div>
         <div className="pk-lv">{PACK_LEVELS.map((l, i) => <button key={l.id} className={i === li ? "on" : ""} onClick={() => reset(i)}>Level {i + 1}</button>)}</div>
       </div>
@@ -46,10 +51,12 @@ export function ContextPacker() {
           <h3>Available context</h3>
           {lv.items.map((it) => {
             const on = picked.includes(it.id);
+            const nofit = !on && !done && it.kind !== "fixed" && it.tokens > free;
             return (
-              <button key={it.id} className={`pk-item ${it.kind}${on ? " on" : ""}`} onClick={() => toggle(it.id)} disabled={it.kind === "fixed"}>
+              <button key={it.id} className={`pk-item ${it.kind}${on ? " on" : ""}${nofit ? " nofit" : ""}`} onClick={() => toggle(it.id)} disabled={it.kind === "fixed" || nofit}>
                 <b>{it.label}</b><em>{it.tokens} tok</em>
                 <span>{it.text}</span>
+                {nofit && <small className="nf">Won't fit: needs {it.tokens}, only {free} free. Remove something first.</small>}
                 {done && <small className="why">{it.kind === "need" ? "Needed. " : it.kind === "bad" ? "Dangerous. " : it.kind === "noise" ? "Noise. " : ""}{it.why}</small>}
               </button>
             );
@@ -62,12 +69,12 @@ export function ContextPacker() {
             {chosen.map((it) => <div key={it.id} className={`blk ${it.kind}`} style={{ height: `${(it.tokens / lv.budget) * 100}%` }}><span>{it.label}</span><i>{it.tokens}</i></div>)}
             <div className="free" style={{ height: `${((lv.budget - used) / lv.budget) * 100}%` }}>{lv.budget - used} free</div>
           </div>
-          {msg && <p className="pk-msg">{msg}</p>}
-          {!done
+                    {!done
             ? <button className="pk-go" onClick={() => setDone(true)}>Send to the model →</button>
             : <div className={`pk-res ${outcome}`}>
                 <div className="stars">{"★".repeat(stars)}{"☆".repeat(3 - stars)}</div>
                 <p className="ans">{answer}</p>
+                <p className="why">{why}</p>
                 {outcome === "thin" && <p className="hint">Missing: {missing.map((m) => m.label).join(", ")}.</p>}
                 <div className="pk-btns">
                   <button onClick={() => reset(li)}>Try again</button>

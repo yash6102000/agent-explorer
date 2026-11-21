@@ -11,6 +11,10 @@ export const tokensContext: Lesson = {
     { id: "window", icon: "layers", label: "Context window", sub: "fixed token budget", x: 500, y: 110, tone: "orange" },
     { id: "model", icon: "tower", label: "LLM", sub: "predicts next token", x: 700, y: 110, tone: "rose" },
   ],
+  zones: [
+    { label: "Your side", sub: "plain text", ids: ["text", "tokenizer"], tone: "blue" },
+    { label: "Model side", sub: "fixed-size memory", ids: ["window", "model"], tone: "rose" },
+  ],
   links: [{ a: "text", b: "tokenizer" }, { a: "tokenizer", b: "window" }, { a: "window", b: "model" }],
   steps: [
     {
@@ -84,7 +88,7 @@ export const tokensContext: Lesson = {
         "The **context window** is a fixed token budget holding the system prompt, tools, history and the answer.",
         "The whole prompt is resent every turn, so long chats get expensive and eventually overflow.",
       ],
-      callout: { kind: "next", text: "Next: Embeddings, how text becomes numbers that capture meaning. They power RAG." },
+      callout: { kind: "next", text: "Next: embeddings, how text becomes numbers that capture meaning." },
       show: ["text", "tokenizer", "window", "model"],
       panel: { kind: "cards", cards: [
         { title: "Token", text: "≈ ¾ of a word. The unit of cost and limits.", tone: "green" },

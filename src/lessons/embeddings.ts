@@ -11,6 +11,10 @@ export const embeddings: Lesson = {
     { id: "model", icon: "chip", label: "Embedding model", sub: "text → vector", x: 320, y: 160, tone: "violet" },
     { id: "space", icon: "rack", label: "Vector space", sub: "meaning as position", x: 570, y: 160, tone: "orange" },
   ],
+  zones: [
+    { label: "Inputs", sub: "any text", ids: ["text", "query"], tone: "blue" },
+    { label: "Meaning space", sub: "similar = close", ids: ["model", "space"], tone: "violet" },
+  ],
   links: [{ a: "text", b: "model" }, { a: "query", b: "model" }, { a: "model", b: "space" }],
   words: [
     { id: "cat", text: "cat", angle: 20, radius: 0.8 }, { id: "kitten", text: "kitten", angle: 28, radius: 0.65 },
@@ -91,7 +95,7 @@ export const embeddings: Lesson = {
         "**Cosine similarity** compares two vectors by their angle.",
         "That makes semantic search possible, and it is the engine inside RAG.",
       ],
-      callout: { kind: "next", text: "Next: Simple RAG puts tokens, windows and embeddings to work." },
+      callout: { kind: "next", text: "Next: attention, how each word looks at the others to pick up context." },
       show: ["text", "query", "model", "space"],
       panel: { kind: "cards", cards: [
         { title: "Embed", text: "Text in, fixed-length vector out.", tone: "violet" },

@@ -2,6 +2,8 @@ import type { Lesson, Panel, RagCtx } from "../types";
 import { vec } from "../lib/rag";
 import { Rich } from "./Rich";
 import { TokensPanel, WindowPanel, WordMapPanel } from "./Foundations";
+import { ChunkPanel } from "./Retrieval";
+import { SamplerPanel, AttentionPanel, FusionPanel, RerankPanel, GraphPanel } from "./Interactive";
 
 const f2 = (n: number) => n.toFixed(2);
 
@@ -57,6 +59,12 @@ export function PanelView({ panel, lesson, ctx: ctxIn, setK, onQuery }: {
     case "tokens": return <TokensPanel />;
     case "window": return <WindowPanel turns={panel.turns} interactive={panel.interactive} />;
     case "wordmap": return <WordMapPanel words={lesson.words ?? []} />;
+    case "chunking": return <ChunkPanel panel={panel} />;
+    case "sampler": return <SamplerPanel panel={panel} />;
+    case "attention": return <AttentionPanel panel={panel} />;
+    case "fusion": return <FusionPanel panel={panel} />;
+    case "rerank": return <RerankPanel panel={panel} />;
+    case "graph": return <GraphPanel panel={panel} />;
     case "cards":
       return (
         <div className="cards">

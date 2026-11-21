@@ -10,6 +10,7 @@ export interface SceneNode {
   tone: Tone;
 }
 export interface SceneLink { a: string; b: string }
+export interface Zone { label: string; sub?: string; ids: string[]; tone: Tone }
 export interface Flow { from: string; to: string; label?: string }
 
 /** Per-query data for the RAG demo. */
@@ -44,7 +45,13 @@ export type Panel =
   | { kind: "cards"; cards: { title: string; text: string; tone: Tone }[] }
   | { kind: "tokens" }
   | { kind: "window"; turns?: number; interactive?: boolean }
-  | { kind: "wordmap" };
+  | { kind: "wordmap" }
+  | { kind: "sampler"; prompt: string; tokens: { t: string; p: number }[]; temperature?: number; topP?: number; controls?: ("temperature" | "topP")[] }
+  | { kind: "attention"; tokens: string[]; weights: number[][]; focus?: number; note?: string }
+  | { kind: "fusion"; a: { label: string; items: { id: string; text: string }[] }; b: { label: string; items: { id: string; text: string }[] }; k?: number }
+  | { kind: "rerank"; query: string; items: { id: string; text: string; first: number; rerank: number }[]; keep?: number }
+  | { kind: "graph"; nodes: { id: string; label: string; x: number; y: number; tone?: Tone }[]; edges: { a: string; b: string; label: string }[]; questions: { text: string; path: string[]; answer: string; vectorHits?: string[] }[] }
+  | { kind: "chunking"; strategy?: "fixed" | "sentence" | "paragraph"; size?: number; overlap?: number; controls?: ("strategy" | "size" | "overlap")[] };
 
 export interface Word { id: string; text: string; angle: number; radius: number }
 
@@ -71,10 +78,11 @@ export interface Lesson {
   goals: string[];
   nodes: SceneNode[];
   links: SceneLink[];
+  zones?: Zone[];
   demo?: RagDemo;
   words?: Word[];
   steps: Step[];
 }
 
 export interface LessonRef { id: string; title: string; ready?: boolean }
-export interface Module { id: string; num: string; title: string; tone: Tone; lessons: LessonRef[] }
+export interface Module { id: string; num: string; title: string; tone: Tone; icon: string; blurb: string; lessons: LessonRef[] }

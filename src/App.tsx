@@ -4,140 +4,188 @@ import { buildCtx } from "./lib/rag";
 import { useStored } from "./lib/hooks";
 import { Stage } from "./components/Stage";
 import { PanelView } from "./components/Panels";
-import { Inspector } from "./components/Inspector";
-import { Sidebar } from "./components/Sidebar";
+import { Json } from "./components/Inspector";
 import { Search } from "./components/Search";
 import { Rich } from "./components/Rich";
 import { ContextPacker } from "./components/ContextPacker";
+import { Home } from "./components/Home";
+import type { SceneNode } from "./types";
 
 const GAMES = ["context-packer"];
-
-const DEFAULT_LESSON = "simple-rag";
+const READY = MODULES.flatMap((m) => m.lessons).filter((l) => l.ready && LESSONS[l.id]);
 
 function parseHash(): { lesson: string; step: number } {
-  const [, lesson, step] = location.hash.split("/");
-  return { lesson: lesson && (LESSONS[lesson] || GAMES.includes(lesson)) ? lesson : DEFAULT_LESSON, step: Math.max(0, parseInt(step ?? "0", 10) || 0) };
+  const [, a, b] = location.hash.split("/");
+  const ok = a && (LESSONS[a] || GAMES.includes(a));
+  return { lesson: ok ? a : "", step: Math.max(0, parseInt(b ?? "0", 10) || 0) };
 }
 
-const Cube = () => (
-  <svg width="22" height="22" viewBox="-13 -13 26 26" aria-hidden="true">
-    <polygon points="0,-11 11,-5 0,1 -11,-5" className="logo-t" />
-    <polygon points="-11,-5 0,1 0,12 -11,6" className="logo-l" />
-    <polygon points="11,-5 0,1 0,12 11,6" className="logo-r" />
+const Logo = () => (
+  <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
+    <defs><linearGradient id="lgo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#8b7bff" /><stop offset="1" stopColor="#22d3ee" /></linearGradient></defs>
+    <rect x="1" y="1" width="22" height="22" rx="7" fill="url(#lgo)" />
+    <path d="M8 9L16 9L12 16Z" fill="none" stroke="#fff" strokeWidth="1.2" opacity=".6" />
+    <circle cx="8" cy="9" r="2" fill="#fff" /><circle cx="16" cy="9" r="2" fill="#fff" /><circle cx="12" cy="16" r="2" fill="#fff" />
   </svg>
 );
 
 export function App() {
   const [route, setRoute] = useState(parseHash);
+  const [nav, setNav] = useState(0);
+  const isHome = !route.lesson;
   const isGame = GAMES.includes(route.lesson);
-  const lesson = LESSONS[route.lesson] ?? LESSONS[DEFAULT_LESSON];
+  const lesson = LESSONS[route.lesson] ?? Object.values(LESSONS)[0];
   const step = Math.min(route.step, lesson.steps.length - 1);
   const s = lesson.steps[step];
   const module = MODULES.find((m) => m.lessons.some((l) => l.id === route.lesson));
 
-  const [theme, setTheme] = useStored<"light" | "dark">("theme", "light");
   const [done, setDone] = useStored<string[]>("done", []);
   const [queryId, setQueryId] = useState(lesson.demo?.queries[0].id ?? "");
   const [k, setK] = useState(lesson.demo?.defaultK ?? 2);
-  const [side, setSide] = useStored("side", true);
   const [search, setSearch] = useState(false);
+  const [poke, setPoke] = useState<SceneNode | null>(null);
 
-  const traceRef = useRef<HTMLPreElement>(null);
-  useEffect(() => { traceRef.current?.scrollTo({ top: traceRef.current.scrollHeight }); }, [step, route.lesson]);
+  const story = useRef<HTMLDivElement>(null);
+  const secs = useRef<(HTMLElement | null)[]>([]);
 
   const ctx = useMemo(() => (lesson.demo ? buildCtx(lesson.demo, queryId, k) : undefined), [lesson, queryId, k]);
-  const go = useCallback((id: string, i: number) => {
-    location.hash = `/${id}/${Math.max(0, Math.min((LESSONS[id]?.steps.length ?? 1) - 1, i))}`;
-  }, []);
+  const open = useCallback((id: string, i = 0) => { location.hash = id ? `/${id}/${i}` : "/"; }, []);
+  const jump = useCallback((i: number) => {
+    secs.current[Math.max(0, Math.min(lesson.steps.length - 1, i))]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, [lesson]);
 
   useEffect(() => {
-    const on = () => setRoute(parseHash());
+    const on = () => { setRoute(parseHash()); setNav((n) => n + 1); };
     window.addEventListener("hashchange", on);
     return () => window.removeEventListener("hashchange", on);
   }, []);
-  useEffect(() => { document.documentElement.dataset.theme = theme; }, [theme]);
-  useEffect(() => {
-    if (lesson.demo) { setQueryId(lesson.demo.queries[0].id); setK(lesson.demo.defaultK); }
-  }, [lesson]);
+  useEffect(() => { if (lesson.demo) { setQueryId(lesson.demo.queries[0].id); setK(lesson.demo.defaultK); } }, [lesson]);
+  useEffect(() => { setPoke(null); }, [step, route.lesson]);
 
-  const last = !isGame && step === lesson.steps.length - 1;
+  // Bring the routed step into view when arriving from a link, search or reload.
   useEffect(() => {
-    if (last && !done.includes(lesson.id)) setDone([...done, lesson.id]);
-  }, [last, lesson.id, done, setDone]);
+    if (isHome || isGame) return;
+    const el = secs.current[step];
+    if (step === 0) story.current?.scrollTo({ top: 0 });
+    else requestAnimationFrame(() => el?.scrollIntoView({ block: "center" }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nav, route.lesson]);
+
+  // The reading position drives the active step.
+  useEffect(() => {
+    if (isHome || isGame || !story.current) return;
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) if (e.isIntersecting) {
+        const i = Number((e.target as HTMLElement).dataset.i);
+        history.replaceState(null, "", `#/${lesson.id}/${i}`);
+        setRoute({ lesson: lesson.id, step: i });
+      }
+    }, { root: getComputedStyle(story.current).overflowY === "visible" ? null : story.current, rootMargin: "-38% 0px -56% 0px" });
+    secs.current.forEach((el) => el && io.observe(el));
+    return () => io.disconnect();
+  }, [lesson.id, isHome, isGame]);
+
+  const last = !isHome && !isGame && step === lesson.steps.length - 1;
+  useEffect(() => { if (last && !done.includes(lesson.id)) setDone([...done, lesson.id]); }, [last, lesson.id, done, setDone]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSearch((v) => !v); return; }
       const tag = (e.target as HTMLElement).tagName;
-      if (search || isGame || tag === "INPUT") return;
-      if (e.key === "ArrowRight" || e.key === " " && tag !== "BUTTON") { e.preventDefault(); go(lesson.id, step + 1); }
-      else if (e.key === "ArrowLeft") go(lesson.id, step - 1);
-      else if (e.key === "Home") go(lesson.id, 0);
-      else if (e.key === "b") setSide((v) => !v);
+      if (search || isHome || isGame || tag === "INPUT" || tag === "TEXTAREA") return;
+      if (e.key === "ArrowRight" || e.key === "j") { e.preventDefault(); jump(step + 1); }
+      else if (e.key === "ArrowLeft" || e.key === "k") { e.preventDefault(); jump(step - 1); }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go, lesson.id, step, search, isGame, setSide]);
+  }, [jump, step, search, isHome, isGame]);
 
   const payload = s.data ?? (ctx ? s.payload?.(ctx) : undefined);
+  const nextLesson = READY[READY.findIndex((l) => l.id === lesson.id) + 1];
+  const title = isGame ? "Context Packer" : lesson.title;
 
   return (
     <div className="app">
       <header className="topbar">
-        <button className="ibtn" onClick={() => setSide(!side)} aria-label="Toggle sidebar" aria-pressed={side}>☰</button>
-        <div className="brand"><Cube /><b>Agent Explorer</b></div>
-        <nav className="crumb"><span>{module?.title}</span><i>/</i><b>{isGame ? "Context Packer" : lesson.title}</b></nav>
+        <a className="brand" href="#/"><Logo /><b>Agent Explorer</b></a>
+        {!isHome && <nav className="crumb"><a href="#/">Home</a><i>/</i><span>{module?.title}</span><i>/</i><b>{title}</b></nav>}
         <span className="grow" />
-        <button className="pill" onClick={() => setSearch(true)}>Search <kbd>⌘K</kbd></button>
-        <button className="ibtn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle theme">{theme === "dark" ? "☀" : "☾"}</button>
+        <button className="kbtn" onClick={() => setSearch(true)}><span>Search</span><kbd>⌘K</kbd></button>
       </header>
 
-      <div className={side ? "shell side-open" : "shell"}>
-        <Sidebar current={route.lesson} step={step} done={done} open={side}
-          onPick={(id) => { go(id, 0); if (innerWidth < 900) setSide(false); }}
-          onStep={(i) => { go(lesson.id, i); if (innerWidth < 900) setSide(false); }}
-          onClose={() => setSide(false)} />
-        {side && <div className="scrim2" onClick={() => setSide(false)} />}
+      {isHome && <main className="page"><Home done={done} onOpen={(id) => open(id)} /></main>}
+      {isGame && <main className="page"><ContextPacker /></main>}
 
-        {isGame ? <main className="playmain"><ContextPacker /></main> : <main className="scene">
-          <div className="center">
-            <section className="stagecard"><Stage lesson={lesson} step={s} /></section>
-            {s.panel && (
-              <section className="viz"><PanelView panel={s.panel} lesson={lesson} ctx={ctx} setK={setK} onQuery={setQueryId} /></section>
-            )}
+      {!isHome && !isGame && (
+        <main className="lesson">
+          <div className="story" ref={story}>
+            <div className="story-head">
+              <span className="eyebrow">{module?.num} · {module?.title}</span>
+              <h1>{lesson.title}</h1>
+              <p className="lede">{lesson.summary}</p>
+            </div>
+            <div className="progbar">
+              <div className="prog" aria-label="Steps">
+                {lesson.steps.map((st, i) => (
+                  <button key={st.short} className={i === step ? "on" : i < step ? "past" : ""} onClick={() => jump(i)} title={st.short} aria-label={`Step ${i + 1}: ${st.short}`} />
+                ))}
+              </div>
+              <span className="prog-l"><b>{String(step + 1).padStart(2, "0")}</b> / {String(lesson.steps.length).padStart(2, "0")} · {s.short}</span>
+            </div>
+
+            {lesson.steps.map((st, i) => (
+              <section key={st.short} data-i={i} ref={(el) => { secs.current[i] = el; }} className={i === step ? "chap on" : "chap"} onClick={() => i !== step && jump(i)}>
+                <div className="chap-n"><span>{String(i + 1).padStart(2, "0")}</span><i className={`ch ch-${st.chapter}`}>{st.chapter}</i></div>
+                <h2>{st.title}</h2>
+                {st.body.map((b, j) => <p key={j}><Rich text={b} /></p>)}
+                {st.callout && <div className={`callout ${st.callout.kind}`}><b>{st.callout.kind}</b><span><Rich text={st.callout.text} /></span></div>}
+                {st.metrics && <div className="metrics">{st.metrics.map((m) => <div key={m.label}><b>{m.value}</b><span>{m.label}</span></div>)}</div>}
+              </section>
+            ))}
+
+            <div className="story-end">
+              <div className="endcard">
+                <span className="eyebrow">{done.includes(lesson.id) ? "Lesson complete" : "Almost there"}</span>
+                <h3>That's {lesson.title}.</h3>
+                <div className="cta">
+                  {nextLesson ? <button className="btn primary" onClick={() => open(nextLesson.id)}>Next: {nextLesson.title}<span>→</span></button>
+                    : <button className="btn primary" onClick={() => open("context-packer")}>Play Context Packer<span>→</span></button>}
+                  <button className="btn" onClick={() => open("")}>Back to the map</button>
+                </div>
+              </div>
+            </div>
           </div>
 
-          <aside className="right">
-            <section className="narr" aria-live="polite">
-              <div className="narr-h">
-                <span className={`tag ch-${s.chapter}`}>{s.chapter} · {step + 1}/{lesson.steps.length}</span>
+          <div className="viz">
+            <section className="stage">
+              <div className="stage-h">
+                <span className="fig">Fig. {step + 1}</span><span className="fig-t">{s.short}</span>
                 <span className="grow" />
-                <button className="nav" onClick={() => go(lesson.id, step - 1)} disabled={step === 0} aria-label="Previous step">←</button>
-                <button className="nav primary" onClick={() => go(lesson.id, step + 1)} disabled={last} aria-label="Next step">→</button>
+                <span className="hint">Click any component</span>
               </div>
-              <h2>{s.title}</h2>
-              {s.body.map((b, i) => <p key={i}><Rich text={b} /></p>)}
-              {s.callout && <div className={`callout ${s.callout.kind}`}><b>{s.callout.kind}</b><Rich text={s.callout.text} /></div>}
-              {s.changes && <ul className="changes">{s.changes.map((c) => <li key={c}>{c}</li>)}</ul>}
-              {s.metrics && <div className="metrics">{s.metrics.map((m) => <div key={m.label}><b>{m.value}</b><span>{m.label}</span></div>)}</div>}
+              <Stage lesson={lesson} step={s} poked={poke?.id} onPoke={setPoke} />
+              <div className={poke ? "pop on" : "pop"} aria-live="polite">
+                {poke && <><i className={`pdot tone-${poke.tone}`} /><b>{poke.label}</b><span>{poke.sub ?? "Part of the pipeline."}</span><button onClick={() => setPoke(null)} aria-label="Close">×</button></>}
+              </div>
             </section>
-            <section className="insp">
-              <h3>Inspector{payload && <small>{payload.title}</small>}</h3>
-              {payload ? <Inspector title="" data={payload.data} /> : <p className="empty">No message is sent on this step.</p>}
-            </section>
-            <section className="tracebox">
-              <h3>Trace</h3>
-              <pre className="trace" ref={traceRef}>
-                <span className="dim">$ </span>lesson.run <span className="str">"{lesson.id}"</span>{"\n"}
-                {lesson.steps.slice(0, step).map((st) => <span key={st.short}><span className="ok">✓</span> {st.short.toLowerCase()}{"\n"}</span>)}
-                <span className="acc">→ {s.title.toLowerCase()}</span><span className="caret" />{last ? "\n✓ done" : ""}
-              </pre>
-            </section>
-          </aside>
-        </main>}
-      </div>
 
-      {search && <Search onClose={() => setSearch(false)} onGo={(l, i) => { setSearch(false); go(l, i); }} />}
+            <div className={s.panel ? "lower two" : "lower"}>
+              {s.panel && (
+                <section className="pane">
+                  <div className="pane-h"><span className="live" />Interactive</div>
+                  <div className="pane-b"><PanelView key={`${lesson.id}-${step}`} panel={s.panel} lesson={lesson} ctx={ctx} setK={setK} onQuery={setQueryId} /></div>
+                </section>
+              )}
+              <section className="pane">
+                <div className="pane-h">Payload{payload && <small>{payload.title}</small>}</div>
+                <div className="pane-b flush">{payload ? <Json data={payload.data} /> : <p className="empty">Nothing is sent over the wire on this step.</p>}</div>
+              </section>
+            </div>
+          </div>
+        </main>
+      )}
+
+      {search && <Search onClose={() => setSearch(false)} onGo={(l, i) => { setSearch(false); open(l, i); }} />}
     </div>
   );
 }
