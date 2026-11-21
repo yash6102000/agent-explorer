@@ -23,6 +23,9 @@ export const MODULES: Module[] = [
     { id: "compaction", title: "Context Compaction" },
     { id: "subagents", title: "Subagents" },
   ] },
+  { id: "play", num: "★", title: "Play", tone: "orange", lessons: [
+    { id: "context-packer", title: "Context Packer (game)", ready: true },
+  ] },
   { id: "safety", num: "04", title: "Safety", tone: "rose", lessons: [
     { id: "prompt-injection", title: "Prompt Injection" },
   ] },

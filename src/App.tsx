@@ -8,12 +8,15 @@ import { Inspector } from "./components/Inspector";
 import { Sidebar } from "./components/Sidebar";
 import { Search } from "./components/Search";
 import { Rich } from "./components/Rich";
+import { ContextPacker } from "./components/ContextPacker";
+
+const GAMES = ["context-packer"];
 
 const DEFAULT_LESSON = "simple-rag";
 
 function parseHash(): { lesson: string; step: number } {
   const [, lesson, step] = location.hash.split("/");
-  return { lesson: lesson && LESSONS[lesson] ? lesson : DEFAULT_LESSON, step: Math.max(0, parseInt(step ?? "0", 10) || 0) };
+  return { lesson: lesson && (LESSONS[lesson] || GAMES.includes(lesson)) ? lesson : DEFAULT_LESSON, step: Math.max(0, parseInt(step ?? "0", 10) || 0) };
 }
 
 const Cube = () => (
@@ -26,10 +29,11 @@ const Cube = () => (
 
 export function App() {
   const [route, setRoute] = useState(parseHash);
-  const lesson = LESSONS[route.lesson];
+  const isGame = GAMES.includes(route.lesson);
+  const lesson = LESSONS[route.lesson] ?? LESSONS[DEFAULT_LESSON];
   const step = Math.min(route.step, lesson.steps.length - 1);
   const s = lesson.steps[step];
-  const module = MODULES.find((m) => m.lessons.some((l) => l.id === lesson.id));
+  const module = MODULES.find((m) => m.lessons.some((l) => l.id === route.lesson));
 
   const [theme, setTheme] = useStored<"light" | "dark">("theme", "light");
   const [done, setDone] = useStored<string[]>("done", []);
@@ -43,7 +47,7 @@ export function App() {
 
   const ctx = useMemo(() => (lesson.demo ? buildCtx(lesson.demo, queryId, k) : undefined), [lesson, queryId, k]);
   const go = useCallback((id: string, i: number) => {
-    location.hash = `/${id}/${Math.max(0, Math.min(LESSONS[id].steps.length - 1, i))}`;
+    location.hash = `/${id}/${Math.max(0, Math.min((LESSONS[id]?.steps.length ?? 1) - 1, i))}`;
   }, []);
 
   useEffect(() => {
@@ -56,7 +60,7 @@ export function App() {
     if (lesson.demo) { setQueryId(lesson.demo.queries[0].id); setK(lesson.demo.defaultK); }
   }, [lesson]);
 
-  const last = step === lesson.steps.length - 1;
+  const last = !isGame && step === lesson.steps.length - 1;
   useEffect(() => {
     if (last && !done.includes(lesson.id)) setDone([...done, lesson.id]);
   }, [last, lesson.id, done, setDone]);
@@ -65,7 +69,7 @@ export function App() {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSearch((v) => !v); return; }
       const tag = (e.target as HTMLElement).tagName;
-      if (search || tag === "INPUT") return;
+      if (search || isGame || tag === "INPUT") return;
       if (e.key === "ArrowRight" || e.key === " " && tag !== "BUTTON") { e.preventDefault(); go(lesson.id, step + 1); }
       else if (e.key === "ArrowLeft") go(lesson.id, step - 1);
       else if (e.key === "Home") go(lesson.id, 0);
@@ -73,7 +77,7 @@ export function App() {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [go, lesson.id, step, search, setSide]);
+  }, [go, lesson.id, step, search, isGame, setSide]);
 
   const payload = s.data ?? (ctx ? s.payload?.(ctx) : undefined);
 
@@ -82,20 +86,20 @@ export function App() {
       <header className="topbar">
         <button className="ibtn" onClick={() => setSide(!side)} aria-label="Toggle sidebar" aria-pressed={side}>☰</button>
         <div className="brand"><Cube /><b>Agent Explorer</b></div>
-        <nav className="crumb"><span>{module?.title}</span><i>/</i><b>{lesson.title}</b></nav>
+        <nav className="crumb"><span>{module?.title}</span><i>/</i><b>{isGame ? "Context Packer" : lesson.title}</b></nav>
         <span className="grow" />
         <button className="pill" onClick={() => setSearch(true)}>Search <kbd>⌘K</kbd></button>
         <button className="ibtn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle theme">{theme === "dark" ? "☀" : "☾"}</button>
       </header>
 
       <div className={side ? "shell side-open" : "shell"}>
-        <Sidebar current={lesson.id} step={step} done={done} open={side}
+        <Sidebar current={route.lesson} step={step} done={done} open={side}
           onPick={(id) => { go(id, 0); if (innerWidth < 900) setSide(false); }}
           onStep={(i) => { go(lesson.id, i); if (innerWidth < 900) setSide(false); }}
           onClose={() => setSide(false)} />
         {side && <div className="scrim2" onClick={() => setSide(false)} />}
 
-        <main className="scene">
+        {isGame ? <main className="playmain"><ContextPacker /></main> : <main className="scene">
           <div className="center">
             <section className="stagecard"><Stage lesson={lesson} step={s} /></section>
             {s.panel && (
@@ -130,7 +134,7 @@ export function App() {
               </pre>
             </section>
           </aside>
-        </main>
+        </main>}
       </div>
 
       {search && <Search onClose={() => setSearch(false)} onGo={(l, i) => { setSearch(false); go(l, i); }} />}
