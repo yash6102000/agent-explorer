@@ -12,6 +12,8 @@ const WORDS: Record<string, string[]> = {
   agents: ["tool", "loop", "memory", "plan"],
   safety: ["injection", "guardrail", "trust"],
   production: ["eval", "trace", "cache", "latency"],
+  models: ["size", "lora", "vision", "local"],
+  cases: ["support", "coding", "research"],
   play: ["game", "budget", "score"],
 };
 
@@ -71,10 +73,8 @@ function layout() {
 export function Home({ done, onOpen }: { done: string[]; onOpen: (id: string) => void }) {
   const pts = useMemo(layout, []);
   const live = useMemo(() => MODULES.flatMap((m) => m.lessons).filter((l) => l.ready && (LESSONS[l.id] || lessonSummary(l.id))), []);
-  const lessonCount = MODULES.reduce((a, m) => a + m.lessons.length, 0);
   const firstLesson = live.find((l) => LESSONS[l.id]) ?? live[0];
   const next = live.find((l) => LESSONS[l.id] && !done.includes(l.id)) ?? firstLesson;
-  const doneCount = live.filter((l) => done.includes(l.id)).length;
   const started = done.length > 0;
 
   const [q, setQ] = useState({ x: W / 2, y: H / 2 });
@@ -166,9 +166,6 @@ export function Home({ done, onOpen }: { done: string[]; onOpen: (id: string) =>
           <p>Interactive lessons on tokens, embeddings, RAG and agents. Every diagram moves while you read.</p>
         </div>
         <div className="hhead-r">
-          {started
-            ? <span className="hprog"><span className="hbar"><i style={{ width: `${(doneCount / live.length) * 100}%` }} /></span>{doneCount} of {live.length} done</span>
-            : <span className="hprog">{live.length} lessons live · {MODULES.length} topics · {lessonCount - live.length} on the way</span>}
           <button className="btn primary" onClick={() => onOpen(next.id)}>{started ? "Continue" : "Start"} with {next.title.replace(" (game)", "")}<span>→</span></button>
         </div>
       </header>
