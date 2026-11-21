@@ -10,9 +10,7 @@ import { Search } from "./components/Search";
 import { Rich } from "./components/Rich";
 import { ContextPacker } from "./components/ContextPacker";
 
-import { EmbeddingGalaxy } from "./components/EmbeddingGalaxy";
-
-const GAMES = ["context-packer", "embedding-galaxy"];
+const GAMES = ["context-packer"];
 
 const DEFAULT_LESSON = "simple-rag";
 
@@ -88,7 +86,7 @@ export function App() {
       <header className="topbar">
         <button className="ibtn" onClick={() => setSide(!side)} aria-label="Toggle sidebar" aria-pressed={side}>☰</button>
         <div className="brand"><Cube /><b>Agent Explorer</b></div>
-        <nav className="crumb"><span>{module?.title}</span><i>/</i><b>{isGame ? (route.lesson === "embedding-galaxy" ? "Embedding Galaxy" : "Context Packer") : lesson.title}</b></nav>
+        <nav className="crumb"><span>{module?.title}</span><i>/</i><b>{isGame ? "Context Packer" : lesson.title}</b></nav>
         <span className="grow" />
         <button className="pill" onClick={() => setSearch(true)}>Search <kbd>⌘K</kbd></button>
         <button className="ibtn" onClick={() => setTheme(theme === "dark" ? "light" : "dark")} aria-label="Toggle theme">{theme === "dark" ? "☀" : "☾"}</button>
@@ -101,7 +99,7 @@ export function App() {
           onClose={() => setSide(false)} />
         {side && <div className="scrim2" onClick={() => setSide(false)} />}
 
-        {isGame ? <main className="playmain">{route.lesson === "embedding-galaxy" ? <EmbeddingGalaxy /> : <ContextPacker />}</main> : <main className="scene">
+        {isGame ? <main className="playmain"><ContextPacker /></main> : <main className="scene">
           <div className="center">
             <section className="stagecard"><Stage lesson={lesson} step={s} /></section>
             {s.panel && (

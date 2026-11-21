@@ -266,16 +266,3 @@ kbd{font-size:10px;border:1px solid var(--line2);border-radius:4px;padding:0 5px
 .pk-res .stars{font-size:22px;color:#e0a800}.pk-res .ans{margin:6px 0;font-size:13px}.pk-res .hint{font-size:12px;opacity:.8;margin:0}
 .pk-res.bad{border-color:#d6453d}.pk-res.good{border-color:#2e8b6a}
 .pk-btns{display:flex;gap:8px;margin-top:8px}.pk-btns .pk-go{margin:0;width:auto}
-
-/* ---- Play: Embedding Galaxy ---- */
-.eg-map{width:100%;height:auto;border-radius:12px;border:1.5px solid var(--line2,#c9d6ce);background:radial-gradient(circle at 50% 50%,color-mix(in srgb,var(--accent,#ff5a2c) 6%,transparent),transparent 70%);cursor:crosshair;touch-action:none}
-.eg-ring{fill:none;stroke:var(--line2,#c9d6ce);stroke-dasharray:3 5}
-.eg-ray{stroke:var(--accent,#ff5a2c);stroke-width:1.5;opacity:.5}
-.eg-link{stroke:var(--accent,#ff5a2c);stroke-width:1.5;opacity:.6}
-.eg-star circle{fill:#8aa095}.eg-star text{font-size:12px;fill:currentColor;opacity:.75}
-.eg-star.on circle{fill:#2e8b6a}.eg-star.on text{opacity:1;font-weight:600}
-.eg-star.tgt text{fill:var(--accent,#ff5a2c);opacity:1}
-.eg-probe{fill:var(--accent,#ff5a2c);stroke:#fff;stroke-width:2}
-.eg-score{font-size:13px;align-self:flex-start}.eg-score b{font-size:22px;font-family:Sora,sans-serif}
-.eg-t{color:var(--accent,#ff5a2c)}
-.pk-lv-b{margin-top:12px;font:inherit;font-size:12px;padding:5px 10px;border-radius:8px;border:1px solid var(--line2,#c9d6ce);background:transparent;color:inherit;cursor:pointer}

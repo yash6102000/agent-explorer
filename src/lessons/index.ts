@@ -25,7 +25,6 @@ export const MODULES: Module[] = [
   ] },
   { id: "play", num: "★", title: "Play", tone: "orange", lessons: [
     { id: "context-packer", title: "Context Packer (game)", ready: true },
-    { id: "embedding-galaxy", title: "Embedding Galaxy (game)", ready: true },
   ] },
   { id: "safety", num: "04", title: "Safety", tone: "rose", lessons: [
     { id: "prompt-injection", title: "Prompt Injection" },
