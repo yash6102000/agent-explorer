@@ -4,6 +4,7 @@ import { Rich } from "./Rich";
 import { TokensPanel, WindowPanel, WordMapPanel } from "./Foundations";
 import { ChunkPanel } from "./Retrieval";
 import { SamplerPanel, AttentionPanel, FusionPanel, RerankPanel, GraphPanel, TracePanel, DefensesPanel } from "./Interactive";
+import { CostPanel, QuantPanel, BudgetPanel } from "./Calculators";
 
 const f2 = (n: number) => n.toFixed(2);
 
@@ -67,6 +68,9 @@ export function PanelView({ panel, lesson, ctx: ctxIn, setK, onQuery }: {
     case "graph": return <GraphPanel panel={panel} />;
     case "trace": return <TracePanel panel={panel} />;
     case "defenses": return <DefensesPanel panel={panel} />;
+    case "cost": return <CostPanel panel={panel} />;
+    case "quant": return <QuantPanel panel={panel} />;
+    case "budget": return <BudgetPanel panel={panel} />;
     case "cards":
       return (
         <div className="cards">

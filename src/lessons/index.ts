@@ -5,21 +5,28 @@ import { agentLoop } from "./agent-loop";
 import { agenticRag } from "./agentic-rag";
 import { aiArchitectures } from "./ai-architectures";
 import { attention } from "./attention";
+import { choosingModel } from "./choosing-model";
 import { chunking } from "./chunking";
 import { computerUse } from "./computer-use";
+import { costLatency } from "./cost-latency";
 import { dataLeakage } from "./data-leakage";
 import { embeddings } from "./embeddings";
+import { evals } from "./evals";
+import { fineTuning } from "./fine-tuning";
 import { graphRag } from "./graph-rag";
 import { hallucinations } from "./hallucinations";
 import { humanInLoop } from "./human-in-loop";
 import { hybridSearch } from "./hybrid-search";
 import { jailbreaks } from "./jailbreaks";
 import { leastPrivilege } from "./least-privilege";
+import { localModels } from "./local-models";
 import { mcp } from "./mcp";
 import { memory } from "./memory";
 import { multiAgent } from "./multi-agent";
+import { multimodalModels } from "./multimodal-models";
 import { multimodalRag } from "./multimodal-rag";
 import { nextToken } from "./next-token";
+import { observability } from "./observability";
 import { planning } from "./planning";
 import { promptInjection } from "./prompt-injection";
 import { prompting } from "./prompting";
@@ -32,10 +39,14 @@ import { redTeaming } from "./red-teaming";
 import { reranking } from "./reranking";
 import { selfRag } from "./self-rag";
 import { simpleRag } from "./simple-rag";
+import { structuredOutput } from "./structured-output";
 import { tokensContext } from "./tokens-context";
 import { toolCalling } from "./tool-calling";
 import { training } from "./training";
 import { vectorSearch } from "./vector-search";
+import { voiceAgents } from "./voice-agents";
+import { voiceArchitecture } from "./voice-architecture";
+import { voiceLatency } from "./voice-latency";
 import { whatIsAgent } from "./what-is-agent";
 import { whatIsLlm } from "./what-is-llm";
 import { whatIsRag } from "./what-is-rag";
@@ -48,21 +59,28 @@ export const LESSONS: Record<string, Lesson> = {
   [agenticRag.id]: agenticRag,
   [aiArchitectures.id]: aiArchitectures,
   [attention.id]: attention,
+  [choosingModel.id]: choosingModel,
   [chunking.id]: chunking,
   [computerUse.id]: computerUse,
+  [costLatency.id]: costLatency,
   [dataLeakage.id]: dataLeakage,
   [embeddings.id]: embeddings,
+  [evals.id]: evals,
+  [fineTuning.id]: fineTuning,
   [graphRag.id]: graphRag,
   [hallucinations.id]: hallucinations,
   [humanInLoop.id]: humanInLoop,
   [hybridSearch.id]: hybridSearch,
   [jailbreaks.id]: jailbreaks,
   [leastPrivilege.id]: leastPrivilege,
+  [localModels.id]: localModels,
   [mcp.id]: mcp,
   [memory.id]: memory,
   [multiAgent.id]: multiAgent,
+  [multimodalModels.id]: multimodalModels,
   [multimodalRag.id]: multimodalRag,
   [nextToken.id]: nextToken,
+  [observability.id]: observability,
   [planning.id]: planning,
   [promptInjection.id]: promptInjection,
   [prompting.id]: prompting,
@@ -75,10 +93,14 @@ export const LESSONS: Record<string, Lesson> = {
   [reranking.id]: reranking,
   [selfRag.id]: selfRag,
   [simpleRag.id]: simpleRag,
+  [structuredOutput.id]: structuredOutput,
   [tokensContext.id]: tokensContext,
   [toolCalling.id]: toolCalling,
   [training.id]: training,
   [vectorSearch.id]: vectorSearch,
+  [voiceAgents.id]: voiceAgents,
+  [voiceArchitecture.id]: voiceArchitecture,
+  [voiceLatency.id]: voiceLatency,
   [whatIsAgent.id]: whatIsAgent,
   [whatIsLlm.id]: whatIsLlm,
   [whatIsRag.id]: whatIsRag,
@@ -136,23 +158,28 @@ export const MODULES: Module[] = [
     { id: "red-teaming", title: "Red-Teaming Your App", ready: true },
   ] },
   { id: "models", num: "05", title: "Models in Practice", tone: "blue", icon: "tower", blurb: "Choose, adapt and run the right model.", lessons: [
-    { id: "choosing-model", title: "Choosing a Model" },
-    { id: "multimodal-models", title: "Vision, Audio & Image Models" },
-    { id: "fine-tuning", title: "Fine-Tuning & LoRA" },
-    { id: "local-models", title: "Running Models Locally" },
+    { id: "choosing-model", title: "Choosing a Model", ready: true },
+    { id: "multimodal-models", title: "Vision, Audio & Image Models", ready: true },
+    { id: "fine-tuning", title: "Fine-Tuning & LoRA", ready: true },
+    { id: "local-models", title: "Running Models Locally", ready: true },
   ] },
-  { id: "production", num: "06", title: "Shipping", tone: "orange", icon: "layers", blurb: "Make it reliable, fast and affordable.", lessons: [
-    { id: "structured-output", title: "Structured Outputs" },
-    { id: "evals", title: "Evals & LLM-as-Judge" },
-    { id: "observability", title: "Tracing & Observability" },
-    { id: "cost-latency", title: "Cost, Latency & Caching" },
+  { id: "voice", num: "06", title: "Voice & Real-Time AI", tone: "violet", icon: "chip", blurb: "Talking to AI: the pipeline, the latency, the call.", lessons: [
+    { id: "voice-architecture", title: "Voice AI Architecture", ready: true },
+    { id: "voice-latency", title: "Latency & Turn-Taking", ready: true },
+    { id: "voice-agents", title: "Building a Voice Agent", ready: true },
   ] },
-  { id: "cases", num: "07", title: "Case Studies", tone: "ink", icon: "docs", blurb: "Real systems, assembled from the lessons.", lessons: [
+  { id: "production", num: "07", title: "Shipping", tone: "orange", icon: "layers", blurb: "Make it reliable, fast and affordable.", lessons: [
+    { id: "structured-output", title: "Structured Outputs", ready: true },
+    { id: "evals", title: "Evals & LLM-as-Judge", ready: true },
+    { id: "observability", title: "Tracing & Observability", ready: true },
+    { id: "cost-latency", title: "Cost, Latency & Caching", ready: true },
+  ] },
+  { id: "cases", num: "08", title: "Case Studies", tone: "ink", icon: "docs", blurb: "Real systems, assembled from the lessons.", lessons: [
     { id: "case-support-bot", title: "A Support Copilot" },
     { id: "case-coding-agent", title: "How a Coding Agent Works" },
     { id: "case-deep-research", title: "A Deep-Research Agent" },
   ] },
-  { id: "play", num: "08", title: "Play", tone: "gray", icon: "tower", blurb: "Games that make the ideas stick.", lessons: [
+  { id: "play", num: "09", title: "Play", tone: "gray", icon: "tower", blurb: "Games that make the ideas stick.", lessons: [
     { id: "context-packer", title: "Context Packer (game)", ready: true },
     { id: "chunk-cutter", title: "Chunk Cutter (game)" },
     { id: "injection-defence", title: "Injection Defence (game)" },
@@ -209,6 +236,9 @@ export const SUMMARIES: Record<string, string> = {
   // Shipping
   "structured-output": "Make the model return valid JSON you can rely on.",
   evals: "Test sets, LLM-as-judge and agent evals: know if a change made things better.",
+  "voice-architecture": "Speech-to-text, LLM and text-to-speech, or one speech-to-speech model: the trade-offs.",
+  "voice-latency": "Where the milliseconds go, and how streaming, endpointing and barge-in make a call feel natural.",
+  "voice-agents": "Phone and web calls, tools mid-conversation, handing off to a person, and testing with real audio.",
   "choosing-model": "Size, context, price, speed and quality: pick a model on evidence, not hype.",
   "multimodal-models": "How models read images and audio, and generate them. What each can and cannot do.",
   "fine-tuning": "Teach a model a style or skill with examples. LoRA makes it cheap. Not for facts.",

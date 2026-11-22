@@ -13,6 +13,7 @@ const WORDS: Record<string, string[]> = {
   safety: ["injection", "guardrail", "trust"],
   production: ["eval", "trace", "cache", "latency"],
   models: ["size", "lora", "vision", "local"],
+  voice: ["speech", "latency", "barge-in", "call"],
   cases: ["support", "coding", "research"],
   play: ["game", "budget", "score"],
 };
@@ -32,6 +33,14 @@ const KEYS: Record<string, string[]> = {
   compaction: ["summarize", "compress", "summary", "compaction", "shrink"],
   subagents: ["delegate", "parallel", "child", "team", "subagent"],
   "what-is-rag": ["rag", "retrieval", "augmented", "generation", "what", "open", "book", "private", "fresh", "finetune", "fine-tuning"],
+  "voice-architecture": ["voice", "speech", "audio", "call", "phone", "stt", "tts", "speak", "talk", "microphone", "assistant"],
+  "voice-latency": ["latency", "interrupt", "barge", "turn", "delay", "real-time", "realtime"],
+  "voice-agents": ["voice", "telephony", "phone", "call", "sip", "webrtc"],
+  "choosing-model": ["choose", "pick", "which", "model", "size", "compare", "open", "closed"],
+  "fine-tuning": ["fine-tune", "finetune", "lora", "adapter", "train", "custom"],
+  "local-models": ["local", "offline", "quantization", "quantize", "laptop", "gpu", "open-weights"],
+  "structured-output": ["json", "schema", "structured", "format", "parse"],
+  "observability": ["trace", "tracing", "log", "debug", "monitor", "observability"],
   "ai-architectures": ["architecture", "architectures", "design", "pattern", "compare", "difference", "different"],
   "rag-architectures": ["architecture", "architectures", "naive", "advanced", "modular", "compare"],
   "what-is-llm": ["llm", "language", "model", "gpt", "chatgpt"],
@@ -64,7 +73,11 @@ function layout() {
     const topic: Pt = { id: m.id, label: m.title, x, y, tone: m.tone, kind: "topic", mod: m.id, n: k++ };
     const words = (WORDS[m.id] ?? m.lessons.slice(0, 3).map((l) => l.title.split(" ")[0].toLowerCase())).map((w, wi, arr): Pt => {
       const a = (wi / arr.length) * Math.PI * 2 + i * 0.9 + 0.5, rad = 105 + ((wi * 29) % 30);
-      return { id: m.id + ":" + w, label: w, x: x + 70 + Math.cos(a) * rad * 1.45, y: y + Math.sin(a) * rad * 0.82, tone: m.tone, kind: "word", mod: m.id, n: k++ };
+      const wx = Math.max(24, Math.min(W - 110, x + 70 + Math.cos(a) * rad * 1.45));
+      let wy = Math.max(52, Math.min(H - 30, y + Math.sin(a) * rad * 0.82));
+      // keep the word off its own topic pill (about 290 wide, 60 tall)
+      if (wx > x - 24 && wx < x + 290 && Math.abs(wy - y) < 46) wy = y + (wy >= y || y - 66 < 64 ? 66 : -66);
+      return { id: m.id + ":" + w, label: w, x: wx, y: wy, tone: m.tone, kind: "word", mod: m.id, n: k++ };
     });
     return [topic, ...words];
   });
