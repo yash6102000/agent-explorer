@@ -24,16 +24,17 @@ export const voiceAgents: Lesson = {
       show: ["caller", "transport", "agent"], focus: ["transport"],
       flows: [{ from: "caller", to: "transport", label: "audio" }, { from: "transport", to: "agent", label: "stream" }],
       panel: { kind: "cards", cards: [
-        { title: "Web or app", text: "WebRTC. Wideband audio, easy to add a screen or buttons.", tone: "blue" },
-        { title: "Phone", text: "Telephony or SIP. Reaches anyone, no app needed.", tone: "orange" },
+        { title: "Web or app", text: "WebRTC. Wideband audio, easy to add a screen or buttons. Examples: LiveKit, Daily.", tone: "blue" },
+        { title: "Phone", text: "Telephony or SIP. Reaches anyone, no app needed. Examples: Twilio, Telnyx.", tone: "orange" },
+        { title: "Framework", text: "Pipecat and LiveKit Agents wire STT, the LLM and TTS together for you. Examples as of writing.", tone: "violet" },
       ] },
       data: { title: "Incoming call (simplified)", data: { channel: "phone", protocol: "SIP", audio: "8 kHz", caller_id: "+1-555-0100" } },
     },
     {
       short: "Phone audio", chapter: "problem", title: "Phone audio is worse audio",
       body: [
-        "Traditional phone audio is narrow and compressed, so consonants blur and speech recognition makes more mistakes. Add traffic or a bad connection and it gets harder.",
-        "Choose a speech recognizer that handles phone audio, and expect errors on names and numbers.",
+        "Traditional phone audio is narrow and compressed, so consonants blur and speech-to-text (STT) makes more mistakes. Add traffic or a bad connection and it gets harder.",
+        "Choose an STT model that handles phone audio, and expect errors on names and numbers.",
       ],
       callout: { kind: "warn", text: "A demo that works on a laptop mic can struggle on a real phone line." },
       show: ["caller", "transport", "agent"], focus: ["caller", "transport"],
@@ -66,7 +67,7 @@ export const voiceAgents: Lesson = {
     {
       short: "Confirm", chapter: "technique", title: "Read it back before you act",
       body: [
-        "Speech recognition mishears names, digits and codes. Before something irreversible, **read it back**: \"That's 4-8-2-1, correct?\"",
+        "Speech-to-text mishears names, digits and codes. Before something irreversible, **read it back**: \"That's 4-8-2-1, correct?\"",
         "Say numbers in small groups with pauses. Spell names letter by letter if asked.",
       ],
       callout: { kind: "warn", text: "Confirm before charging, cancelling or booking, not after." },

@@ -3,6 +3,7 @@ import { LESSONS, MODULES } from "./lessons";
 import { buildCtx } from "./lib/rag";
 import { useStored } from "./lib/hooks";
 import { Stage } from "./components/Stage";
+import { IsoStage } from "./components/IsoStage";
 import { PanelView } from "./components/Panels";
 import { Json } from "./components/Inspector";
 import { Search } from "./components/Search";
@@ -40,6 +41,7 @@ export function App() {
   const module = MODULES.find((m) => m.lessons.some((l) => l.id === route.lesson));
 
   const [done, setDone] = useStored<string[]>("done", []);
+  const [diagram, setDiagram] = useStored<"iso" | "flat">("diagram", "iso");
   const [queryId, setQueryId] = useState(lesson.demo?.queries[0].id ?? "");
   const [k, setK] = useState(lesson.demo?.defaultK ?? 2);
   const [search, setSearch] = useState(false);
@@ -157,13 +159,19 @@ export function App() {
           </div>
 
           <div className="viz">
-            <section className="stage">
+            <section className={diagram === "iso" ? "stage iso" : "stage"}>
               <div className="stage-h">
                 <span className="fig">Fig. {step + 1}</span><span className="fig-t">{s.short}</span>
                 <span className="grow" />
                 <span className="hint">Click any component</span>
+                <span className="dg-toggle" role="group" aria-label="Diagram style">
+                  <button className={diagram === "iso" ? "on" : ""} onClick={() => setDiagram("iso")} aria-pressed={diagram === "iso"}>Illustrated</button>
+                  <button className={diagram === "flat" ? "on" : ""} onClick={() => setDiagram("flat")} aria-pressed={diagram === "flat"}>Classic</button>
+                </span>
               </div>
-              <Stage lesson={lesson} step={s} poked={poke?.id} onPoke={setPoke} />
+              {diagram === "iso"
+                ? <IsoStage lesson={lesson} step={s} poked={poke?.id} onPoke={setPoke} />
+                : <Stage lesson={lesson} step={s} poked={poke?.id} onPoke={setPoke} />}
               <div className={poke ? "pop on" : "pop"} aria-live="polite">
                 {poke && <><i className={`pdot tone-${poke.tone}`} /><b>{poke.label}</b><span>{poke.sub ?? "Part of the pipeline."}</span><button onClick={() => setPoke(null)} aria-label="Close">×</button></>}
               </div>

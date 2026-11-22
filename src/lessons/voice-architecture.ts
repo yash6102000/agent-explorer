@@ -7,7 +7,7 @@ export const voiceArchitecture: Lesson = {
   goals: ["The cascaded pipeline", "What each stage passes along", "The speech-to-speech shortcut", "How to choose"],
   nodes: [
     { id: "user", icon: "laptop", label: "User & mic", sub: "audio in", x: 90, y: 60, tone: "green" },
-    { id: "stt", icon: "chip", label: "Speech to text", sub: "ASR", x: 310, y: 60, tone: "blue" },
+    { id: "stt", icon: "chip", label: "Speech to text", sub: "STT", x: 310, y: 60, tone: "blue" },
     { id: "llm", icon: "tower", label: "LLM", sub: "reads and replies", x: 520, y: 60, tone: "violet" },
     { id: "tts", icon: "layers", label: "Text to speech", sub: "TTS", x: 720, y: 60, tone: "orange" },
     { id: "speaker", icon: "docs", label: "Speaker", sub: "audio out", x: 720, y: 220, tone: "green" },
@@ -31,7 +31,7 @@ export const voiceArchitecture: Lesson = {
     {
       short: "Cascade", chapter: "solution", title: "The cascade: three models in a row",
       body: [
-        "**Speech-to-text** (ASR, automatic speech recognition) turns audio into words. A text **LLM** writes the reply. **Text-to-speech** (TTS) speaks it.",
+        "**Speech-to-text (STT)** turns audio into words. Researchers call it ASR, automatic speech recognition: same thing. A text **LLM** writes the reply, and **text-to-speech (TTS)** turns that reply back into a voice.",
         "Each stage is a separate model you can swap.",
       ],
       show: ["user", "stt", "llm", "tts", "speaker"], focus: ["stt", "llm", "tts"],
@@ -48,7 +48,7 @@ export const voiceArchitecture: Lesson = {
       show: ["user", "stt", "llm", "tts", "speaker"], focus: ["stt", "llm"],
       panel: { kind: "trace", events: [
         { type: "user", label: "audio", text: "A frustrated voice: \"Where is my order?\" Sent as audio frames." },
-        { type: "agent", label: "ASR", text: "Outputs transcript \"Where is my order\" and drops the frustrated tone." },
+        { type: "agent", label: "STT", text: "Outputs transcript \"Where is my order\" and drops the frustrated tone." },
         { type: "think", label: "LLM", text: "Reads the text, may call a tool, writes the reply in text." },
         { type: "result", label: "tool", text: "Order status: shipped yesterday. Logged and checkable." },
         { type: "agent", label: "TTS", text: "Turns the reply text into audio in a chosen voice." },
@@ -57,7 +57,7 @@ export const voiceArchitecture: Lesson = {
     {
       short: "Trade-offs", chapter: "tradeoff", title: "Cascade: control, at a delay cost",
       body: [
-        "You can mix the best ASR, LLM and voice, and see every step. The price: each stage adds delay, and the text hop discards tone.",
+        "You can mix the best STT, LLM and TTS voice, and see every step. The price: each stage adds delay, and the text hop discards tone.",
       ],
       callout: { kind: "tip", text: "Latency in detail comes in the next lesson." },
       show: ["user", "stt", "llm", "tts", "speaker"], focus: ["stt", "llm", "tts"],
@@ -84,6 +84,24 @@ export const voiceArchitecture: Lesson = {
         { title: "Fewer tool options", text: "Tool use and guardrails depend on the model's support.", tone: "orange" },
       ] },
       data: { title: "Speech-to-speech turn", data: { in: "audio (2.1 s)", out: "audio (1.4 s)", transcript: "optional, depends on the model" } },
+    },
+    {
+      short: "Real tools", chapter: "technique", title: "Real tools for each piece",
+      body: [
+        "Each role in the pipeline has providers you can pick from. Here are well-known examples for each.",
+        "You can swap one role without touching the others.",
+      ],
+      callout: { kind: "tip", text: "Examples as of writing, not endorsements. Names change; the roles stay." },
+      show: ["user", "stt", "llm", "tts", "speaker", "s2s"], focus: ["stt", "tts", "s2s"],
+      panel: { kind: "cards", cards: [
+        { title: "STT (speech to text)", text: "Deepgram, AssemblyAI, Whisper (open source), and the speech services from big cloud providers.", tone: "blue" },
+        { title: "TTS (text to speech)", text: "Cartesia, ElevenLabs, and the voices from big cloud providers.", tone: "orange" },
+        { title: "Real-time framework", text: "LiveKit, Pipecat, Daily. They move audio live and run the STT, LLM, TTS loop for you.", tone: "violet" },
+        { title: "Phone lines", text: "Twilio and Telnyx connect real phone numbers to your agent over SIP.", tone: "green" },
+        { title: "Speech-to-speech APIs", text: "OpenAI Realtime API and Google's Gemini Live API take audio in and give audio back.", tone: "rose" },
+        { title: "All-in-one platforms", text: "Vapi and Retell bundle the pieces so you configure a voice agent instead of building one.", tone: "gray" },
+      ] },
+      data: { title: "One provider per role (simplified)", data: { stt: "any speech-to-text service", llm: "any text LLM", tts: "any text-to-speech voice", transport: "WebRTC or phone (SIP)", note: "swap one role without touching the others" } },
     },
     {
       short: "Choose", chapter: "recap", title: "Choose by what you need most",

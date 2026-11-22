@@ -54,7 +54,7 @@ export const multimodalModels: Lesson = {
     {
       short: "Audio", chapter: "technique", title: "Hearing and speaking are model skills",
       body: [
-        "**Speech recognition** turns audio into text, often with timestamps. **Speech synthesis** does the reverse, turning text into a voice.",
+        "**Speech-to-text (STT, also called ASR)** turns audio into text, often with timestamps. **Text-to-speech (TTS)** does the reverse, turning text into a voice.",
         "Here they are model abilities. How a live call chains them is in Voice AI Architecture.",
       ],
       show: ["input", "encoder", "model", "output"], focus: ["input", "output"],

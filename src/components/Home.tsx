@@ -33,7 +33,7 @@ const KEYS: Record<string, string[]> = {
   compaction: ["summarize", "compress", "summary", "compaction", "shrink"],
   subagents: ["delegate", "parallel", "child", "team", "subagent"],
   "what-is-rag": ["rag", "retrieval", "augmented", "generation", "what", "open", "book", "private", "fresh", "finetune", "fine-tuning"],
-  "voice-architecture": ["voice", "speech", "audio", "call", "phone", "stt", "tts", "speak", "talk", "microphone", "assistant"],
+  "voice-architecture": ["voice", "speech", "audio", "call", "phone", "stt", "tts", "asr", "speak", "talk", "microphone", "assistant", "livekit", "deepgram", "cartesia", "elevenlabs", "pipecat", "vapi", "twilio", "whisper"],
   "voice-latency": ["latency", "interrupt", "barge", "turn", "delay", "real-time", "realtime"],
   "voice-agents": ["voice", "telephony", "phone", "call", "sip", "webrtc"],
   "choosing-model": ["choose", "pick", "which", "model", "size", "compare", "open", "closed"],

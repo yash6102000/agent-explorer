@@ -1,0 +1,838 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Diagram Lab</title>
+<link rel="icon" href="data:," />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700;800&family=Geist+Mono:wght@500;600;700&display=swap" rel="stylesheet" />
+<style>
+  :root{--bg:#f4f5fa;--panel:#fff;--ink:#24223a;--muted:#5f5d74;--dim:#9a99ad;--line:rgba(36,34,58,.09);--line2:rgba(36,34,58,.16);
+    --accent:#5b4dff;--cyan:#0891b2;--red:#e11d48;--sans:"Geist",system-ui,sans-serif;--mono:"Geist Mono",ui-monospace,Menlo,monospace}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 var(--sans);-webkit-font-smoothing:antialiased}
+  header.top{max-width:1280px;margin:0 auto;padding:52px 24px 16px}
+  .eyebrow{font:600 12px var(--mono);color:var(--muted)}
+  h1{margin:10px 0 8px;font:700 clamp(34px,4.6vw,54px)/1 var(--sans);letter-spacing:-.045em}
+  .lede{margin:0;max-width:760px;color:var(--muted);font-size:16.5px}
+  nav.chips{position:sticky;top:0;z-index:20;display:flex;gap:8px;flex-wrap:wrap;max-width:1280px;margin:0 auto;padding:12px 24px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+  nav.chips a{display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:99px;border:1.5px solid var(--line2);background:#fff;font:500 13px var(--sans);text-decoration:none;color:var(--muted)}
+  nav.chips a:hover{color:var(--ink);border-color:var(--ink)}
+  nav.chips a b{font:700 11px var(--mono);color:var(--dim)}
+  nav.chips a.fav{border-color:var(--accent);color:var(--accent)}
+  nav.chips .picks{margin-left:auto;align-self:center;font:600 12px var(--mono);color:var(--muted)}
+  main{max-width:1280px;margin:0 auto;padding:20px 24px 90px;display:flex;flex-direction:column;gap:30px}
+  .card{background:#fff;border:1.5px solid var(--line2);border-radius:22px;padding:16px;scroll-margin-top:70px;box-shadow:0 18px 40px -32px rgba(36,34,58,.35)}
+  .card-h{display:flex;gap:14px;align-items:flex-start;padding:4px 6px 14px}
+  .num{font:700 12px var(--mono);color:var(--accent);padding-top:6px}
+  .card-h h2{margin:0;font:700 23px/1.2 var(--sans);letter-spacing:-.03em}
+  .card-h p{margin:4px 0 0;color:var(--muted);font-size:14px}
+  .grow{flex:1}
+  .heart{flex:none;width:40px;height:40px;border-radius:12px;border:1.5px solid var(--line2);background:#fff;font-size:18px;color:var(--dim);cursor:pointer}
+  .heart.on{border-color:var(--accent);color:var(--accent);background:#f1efff}
+
+  /* stage */
+  .stage{position:relative;height:640px;border-radius:16px;overflow:hidden;border:1.5px solid var(--line2);background:#f8f9fd}
+  .stage svg{position:absolute;inset:0;width:100%;height:100%}
+  .stats{position:absolute;left:14px;top:14px;z-index:4;display:flex;gap:8px;flex-wrap:wrap;max-width:70%}
+  .stat{min-width:104px;padding:7px 12px 8px;border:1.5px solid var(--ink);border-radius:12px;background:#fff;box-shadow:0 3px 0 rgba(36,34,58,.12)}
+  .stat i{display:block;font:600 10px var(--mono);font-style:normal;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+  .stat b{display:block;font:700 15px var(--mono);margin-top:1px;transition:color .3s}
+  .stat.hot{border-color:var(--accent)}.stat.hot b{color:var(--accent)}
+  .ctl{position:absolute;right:14px;top:14px;z-index:4;display:flex;gap:6px}
+  .ctl button{height:34px;min-width:36px;padding:0 12px;border-radius:10px;border:1.5px solid var(--ink);background:#fff;font:600 13px var(--sans);color:var(--ink);cursor:pointer;box-shadow:0 3px 0 rgba(36,34,58,.12)}
+  .ctl button:active{transform:translateY(2px);box-shadow:none}
+  .ctl button.on{background:var(--ink);color:#fff}
+  .cap{position:absolute;left:14px;right:14px;bottom:14px;z-index:4;display:flex;gap:14px;align-items:center;padding:10px 14px;border:1.5px solid var(--ink);border-radius:14px;background:#fff;box-shadow:0 3px 0 rgba(36,34,58,.12)}
+  .cap .n{flex:none;font:700 12px var(--mono);color:#fff;background:var(--accent);border-radius:8px;padding:3px 8px}
+  .cap .t{font:500 14px var(--sans)}
+  .cap .dots{margin-left:auto;display:flex;gap:5px;flex:none}
+  .cap .dots i{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--ink);background:#fff;cursor:pointer}
+  .cap .dots i.on{background:var(--accent);border-color:var(--accent)}
+
+  /* svg */
+  .ink{stroke:var(--ink);stroke-linejoin:round;stroke-linecap:round}
+  .lbl{font:700 15px var(--sans);fill:var(--ink);letter-spacing:-.01em}
+  .sub{font:600 11px var(--mono);fill:#4d4b66}
+  .pill-bg{fill:#fff;stroke:var(--ink);stroke-width:2.6}
+  .pill text{font:700 13.5px var(--mono);fill:var(--ink)}
+  .pill.accent .pill-bg{fill:var(--accent);stroke:var(--ink)}.pill.accent text{fill:#fff}
+  .pill.warn .pill-bg{fill:#ffe4ea;stroke:var(--red)}.pill.warn text{fill:#be123c}
+  .pill.ok .pill-bg{fill:#e3f8ef;stroke:#0f9d6b}.pill.ok text{fill:#0b7a53}
+  .pill.ghost .pill-bg{fill:#f1efff;stroke:var(--accent);stroke-dasharray:5 4}.pill.ghost text{fill:var(--accent)}
+  .pill .ic{fill:#fff;stroke:var(--ink);stroke-width:2}
+  .pill.accent .ic{fill:var(--accent);stroke:#fff}
+  .glyph{fill:none;stroke:var(--ink);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+  .arr .line{fill:none;stroke:var(--ink);stroke-width:3;stroke-linecap:round;opacity:.22;transition:opacity .35s,stroke .35s}
+  .arr.dash .line{stroke-dasharray:3 9}
+  .arr.on .line{opacity:1}
+  .arr.on.k-accent .line{stroke:var(--accent)}.arr.on.k-cyan .line{stroke:var(--cyan)}.arr.on.k-red .line{stroke:var(--red)}
+  .arr-l{opacity:0;transition:opacity .35s}.arr-l.on{opacity:1}
+  .pk{opacity:0}
+  .ring{fill:rgba(91,77,255,.07);stroke:var(--accent);stroke-width:3;stroke-dasharray:10 7;opacity:0;transition:opacity .35s}
+  .ring.on{opacity:1;animation:march 1s linear infinite}
+  @keyframes march{to{stroke-dashoffset:-34}}
+  .node{transition:transform .45s cubic-bezier(.3,1.5,.5,1)}
+  .node.up{transform:translateY(-10px)}
+  .bob{animation:bob 2.6s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-5px)}}
+  @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="eyebrow">Agent Explorer · diagram lab</div>
+  <h1>Ten illustrated diagrams</h1>
+  <p class="lede">Isometric, hand-built, one per topic. Each one plays its story step by step: use ◀ ▶ or tap the dots, pause any time, and ♥ the ones you want in the lessons.</p>
+</header>
+<nav class="chips" id="nav"></nav>
+<main id="main"></main>
+
+<script>
+/* ============================================================
+   Iso toolkit
+   ============================================================ */
+const NS = "http://www.w3.org/2000/svg";
+const S = (tag, a = {}, p) => { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); if (p) p.appendChild(e); return e; };
+const H = (tag, cls, p, html) => { const e = document.createElement(tag); if (cls) e.className = cls; if (html != null) e.innerHTML = html; if (p) p.appendChild(e); return e; };
+const C30 = Math.cos(Math.PI / 6);
+const P = (x, y, z = 0) => [(x - y) * C30, (x + y) * 0.5 - z];          // world -> screen
+const WI = (sx, sy) => [sy + sx / (2 * C30), sy - sx / (2 * C30)];        // screen (floor) -> world
+const ps = (pts) => pts.map((p) => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" ");
+const pt = (p) => p[0].toFixed(1) + "," + p[1].toFixed(1);
+const INK = "#24223a", ACC = "#5b4dff";
+const REDUCE = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const TONE = {
+  indigo: ["#f4f2ff", "#d8d2ff", "#b5abf8"], cyan: ["#effbff", "#c7edf7", "#9fd9ea"], mint: ["#f0fbf6", "#cdeee0", "#a3dbc3"],
+  peach: ["#fff6ee", "#ffdcc3", "#f5bd96"], rose: ["#fff2f5", "#ffd1dc", "#f2a6b8"], lemon: ["#fffbeb", "#fdedb2", "#f0d676"],
+  slate: ["#f7f8fb", "#e0e3ed", "#c3c8d9"], white: ["#ffffff", "#eceef5", "#d9dce8"],
+};
+const GLYPH = {
+  spark: "M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9z M19 15l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z",
+  chunk: "M4 4h7v7H4z M13 4h7v7h-7z M4 13h7v7H4z M13 13h7v7h-7z",
+  chip: "M7 7h10v10H7z M10 10h4v4h-4z M9 3v4 M15 3v4 M9 17v4 M15 17v4 M3 9h4 M3 15h4 M17 9h4 M17 15h4",
+  db: "M4 6c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3z M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6 M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3",
+  doc: "M6 3h8l4 4v14H6z M14 3v4h4 M9 12h6 M9 16h6",
+  search: "M10.5 4a6.5 6.5 0 1 1 0 13a6.5 6.5 0 0 1 0-13z M15.5 15.5L21 21",
+  calc: "M6 3h12v18H6z M9 7h6 M9 11h1 M14 11h1 M9 15h1 M14 15h1 M9 18h6",
+  cal: "M4 6h16v14H4z M4 10h16 M8 3v5 M16 3v5 M8 14h2 M12 14h2",
+  mail: "M3 6h18v12H3z M3 7l9 6 9-6",
+  shield: "M12 3l8 3v6c0 5-3.5 8-8 9c-4.5-1-8-4-8-9V6z M8.5 12l2.5 2.5 4.5-5",
+  mic: "M12 3a3 3 0 0 1 3 3v6a3 3 0 0 1-6 0V6a3 3 0 0 1 3-3z M6 11a6 6 0 0 0 12 0 M12 17v4",
+  wave: "M3 12h2 M7 8v8 M11 4v16 M15 8v8 M19 11v2",
+  branch: "M12 21v-9 M12 12L5 5 M12 12l7-7 M5 5v5 M5 5h5 M19 5v5 M19 5h-5",
+  user: "M12 12a4 4 0 1 0 0-8a4 4 0 0 0 0 8z M4 21c1-4 4-6 8-6s7 2 8 6",
+  globe: "M12 3a9 9 0 1 0 0 18a9 9 0 0 0 0-18z M3 12h18 M12 3c3 3 3 15 0 18 M12 3c-3 3-3 15 0 18",
+  folder: "M3 6h6l2 2h10v11H3z",
+  git: "M7 4v10 M7 17a3 3 0 1 0 0.01 0 M17 7a3 3 0 1 0 0.01 0 M17 10c0 4-4 5-10 4",
+  plug: "M9 3v5 M15 3v5 M6 8h12v3a6 6 0 0 1-12 0z M12 17v4",
+  layers: "M12 3l9 5-9 5-9-5z M3 12.5l9 5 9-5 M3 17l9 5 9-5",
+  coins: "M12 4c4 0 7 1.4 7 3s-3 3-7 3-7-1.4-7-3 3-3 7-3z M5 7v5c0 1.6 3 3 7 3s7-1.4 7-3V7 M5 12v5c0 1.6 3 3 7 3s7-1.4 7-3v-5",
+  bolt: "M13 2L4 14h7l-1 8 9-12h-7z",
+  gauge: "M4 16a8 8 0 1 1 16 0 M12 16l4-5",
+  x: "M6 6l12 12 M18 6L6 18",
+  check: "M5 12l5 5 9-10",
+  report: "M6 3h12v18H6z M9 8h6 M9 12h6 M9 16h3",
+};
+
+function roundPoly(pts, r) {
+  const n = pts.length; let d = "";
+  for (let i = 0; i < n; i++) {
+    const a = pts[(i - 1 + n) % n], b = pts[i], c = pts[(i + 1) % n];
+    const l1 = Math.hypot(a[0] - b[0], a[1] - b[1]), l2 = Math.hypot(c[0] - b[0], c[1] - b[1]);
+    const rr = Math.min(r, l1 / 2, l2 / 2);
+    const p1 = [b[0] + (a[0] - b[0]) / l1 * rr, b[1] + (a[1] - b[1]) / l1 * rr];
+    const p2 = [b[0] + (c[0] - b[0]) / l2 * rr, b[1] + (c[1] - b[1]) / l2 * rr];
+    d += (i ? "L" : "M") + pt(p1) + "Q" + pt(b) + " " + pt(p2);
+  }
+  return d + "Z";
+}
+
+function makeCtx(svg, pid) {
+  const defs = S("defs", {}, svg);
+  let n = 0;
+  const ctx = { svg, defs, pid, nodes: {}, arrows: {}, uid: () => `${pid}-u${n++}` };
+  for (const [k, t] of Object.entries(TONE)) {
+    const g = S("linearGradient", { id: `${pid}-${k}-t`, x1: 0, y1: 0, x2: 1, y2: 1 }, defs);
+    S("stop", { offset: 0, "stop-color": "#ffffff" }, g); S("stop", { offset: 1, "stop-color": t[0] }, g);
+    const c = S("linearGradient", { id: `${pid}-${k}-c`, x1: 0, y1: 0, x2: 1, y2: 0 }, defs);
+    S("stop", { offset: 0, "stop-color": t[1] }, c); S("stop", { offset: 1, "stop-color": t[2] }, c);
+  }
+  const f = S("filter", { id: `${pid}-sh`, x: "-50%", y: "-50%", width: "200%", height: "200%" }, defs); S("feGaussianBlur", { stdDeviation: 7 }, f);
+  const pat = S("pattern", { id: `${pid}-grid`, width: 104, height: 60, patternUnits: "userSpaceOnUse" }, defs);
+  S("path", { d: "M0 0L104 60M0 60L104 0", stroke: "rgba(91,77,255,.10)", "stroke-width": 1.2 }, pat);
+  for (const [k, c] of [["ink", INK], ["accent", ACC], ["cyan", "#0891b2"], ["red", "#e11d48"]]) {
+    const m = S("marker", { id: `${pid}-ah-${k}`, viewBox: "0 0 12 12", refX: 9, refY: 6, markerUnits: "userSpaceOnUse", markerWidth: 18, markerHeight: 18, orient: "auto" }, defs);
+    S("path", { d: "M1 1.5L11 6L1 10.5z", fill: c, stroke: c, "stroke-width": 1, "stroke-linejoin": "round" }, m);
+  }
+  S("rect", { x: -1400, y: -900, width: 2800, height: 1800, fill: `url(#${pid}-grid)` }, svg);
+  ctx.floor = S("g", {}, svg); ctx.arrowsL = S("g", {}, svg); ctx.layer = S("g", {}, svg); ctx.top = S("g", {}, svg);
+  return ctx;
+}
+
+function glyph(p, cx, cy, name, size = 28, cls = "glyph") {
+  const k = size / 24;
+  return S("path", { d: GLYPH[name] || GLYPH.spark, class: cls, transform: `translate(${cx - size / 2},${cy - size / 2}) scale(${k})` }, p);
+}
+
+/* floor shadow under an object footprint (world) */
+function shadow(ctx, p, wx, wy, w, d, z = 0) {
+  S("path", { d: roundPoly([P(wx - w / 2 + 8, wy - d / 2 + 16, z), P(wx + w / 2 + 16, wy - d / 2 + 8, z), P(wx + w / 2 + 16, wy + d / 2 + 16, z), P(wx - w / 2 + 8, wy + d / 2 + 16, z)], 22), fill: "rgba(36,34,58,.16)", filter: `url(#${ctx.pid}-sh)` }, p);
+}
+
+/* rounded slab (plinth), world-based */
+function slab(ctx, p, wx, wy, w, d, h, o = {}) {
+  const { r = 16, z = 0, top = "#ffffff", side = "#e6e8f1", sw = 2.6 } = o;
+  const T0 = P(wx - w / 2, wy - d / 2, z + h), T1 = P(wx + w / 2, wy - d / 2, z + h), T2 = P(wx + w / 2, wy + d / 2, z + h), T3 = P(wx - w / 2, wy + d / 2, z + h);
+  const B1 = P(wx + w / 2, wy - d / 2, z), B2 = P(wx + w / 2, wy + d / 2, z), B3 = P(wx - w / 2, wy + d / 2, z);
+  S("path", { d: roundPoly([T3, T2, T1, B1, B2, B3], r), fill: side, class: "ink", "stroke-width": sw }, p);
+  S("path", { d: roundPoly([T0, T1, T2, T3], r), fill: top, class: "ink", "stroke-width": sw }, p);
+  S("line", { x1: T2[0], y1: T2[1] + r * 0.3, x2: B2[0], y2: B2[1] - r * 0.3, class: "ink", "stroke-width": 1.6, opacity: 0.35 }, p);
+  return { T0, T1, T2, T3 };
+}
+
+/* register a node so steps can focus it and arrows can reach it */
+function reg(ctx, key, node, ring) {
+  node.key = key; ctx.nodes[key] = node;
+  if (ring) {
+    const [wx, wy] = WI(node.ax, node.ay), w = ring;
+    node.ring = S("path", { d: roundPoly([P(wx - w / 2, wy - w / 2), P(wx + w / 2, wy - w / 2), P(wx + w / 2, wy + w / 2), P(wx - w / 2, wy + w / 2)], 26), class: "ring" }, ctx.floor);
+  }
+  return node;
+}
+
+/* iso cube with label printed on the front, icon on top */
+function cube(ctx, key, ax, ay, o = {}) {
+  const { s = 92, h = 70, z = 0, tone = "indigo", icon, title, sub, r = 12, parent, ring = true, noShadow } = o;
+  const [wx, wy] = WI(ax, ay);
+  const g = S("g", { class: "node" }, parent || ctx.layer);
+  const p = (dx, dy, dz) => P(wx + dx, wy + dy, z + dz);
+  const T0 = p(-s / 2, -s / 2, h), T1 = p(s / 2, -s / 2, h), T2 = p(s / 2, s / 2, h), T3 = p(-s / 2, s / 2, h), B1 = p(s / 2, -s / 2, 0), B2 = p(s / 2, s / 2, 0), B3 = p(-s / 2, s / 2, 0);
+  if (!z && !noShadow) shadow(ctx, g, wx, wy, s, s);
+  const hex = roundPoly([T0, T1, B1, B2, B3, T3], r), cid = ctx.uid();
+  S("path", { d: hex }, S("clipPath", { id: cid }, ctx.defs));
+  const fg = S("g", { "clip-path": `url(#${cid})` }, g);
+  S("polygon", { points: ps([T3, T2, B2, B3]), fill: TONE[tone][1] }, fg);
+  S("polygon", { points: ps([T2, T1, B1, B2]), fill: TONE[tone][2] }, fg);
+  S("polygon", { points: ps([T0, T1, T2, T3]), fill: `url(#${ctx.pid}-${tone}-t)` }, fg);
+  S("path", { d: `M${pt(T3)}L${pt(T2)}L${pt(T1)}M${pt(T2)}L${pt(B2)}`, fill: "none", class: "ink", "stroke-width": 2, opacity: 0.55 }, g);
+  S("path", { d: hex, fill: "none", class: "ink", "stroke-width": 2.8 }, g);
+  const top = p(0, 0, h);
+  if (icon) glyph(g, top[0], top[1], icon, Math.min(34, s * 0.36));
+  if (title) {
+    const cy = (T2[1] + B2[1]) / 2 + (sub ? -1 : 6);
+    S("text", { x: T2[0], y: cy, "text-anchor": "middle", class: "lbl" }, g).textContent = title;
+    if (sub) S("text", { x: T2[0], y: cy + 17, "text-anchor": "middle", class: "sub" }, g).textContent = sub;
+  }
+  const node = { g, ax, ay, cx: ax, cy: ay - z - h / 2 - s * 0.12, rad: s * 0.92, topY: T0[1], faceL: (u, v) => [B3[0] + u * C30, B3[1] + u * 0.5 - v], faceR: (u, v) => [B2[0] + u * C30, B2[1] - u * 0.5 - v], s, h };
+  return key ? reg(ctx, key, node, ring ? s + 54 : 0) : node;
+}
+
+/* face-local transforms: draw in (u along the face, v up) */
+const faceL = (n) => `matrix(${C30} 0.5 0 -1 ${n.faceL(0, 0)[0]} ${n.faceL(0, 0)[1]})`;
+
+/* cylinder (database / cache) */
+function cylinder(ctx, key, ax, ay, o = {}) {
+  const { r = 50, h = 76, tone = "indigo", icon = "db", label, labelIcon, side = 1 } = o;
+  const g = S("g", { class: "node" }, ctx.layer);
+  const [wx, wy] = WI(ax, ay); shadow(ctx, g, wx, wy, r * 2, r * 2);
+  const rx = r * 1.2247, ry = r * 0.7071, yT = ay - h;
+  const gid = `${ctx.pid}-${tone}-c`;
+  S("path", { d: `M${ax - rx},${yT} L${ax - rx},${ay} A${rx},${ry} 0 0 0 ${ax + rx},${ay} L${ax + rx},${yT} Z`, fill: `url(#${gid})`, class: "ink", "stroke-width": 2.8 }, g);
+  for (const k of [1 / 3, 2 / 3]) S("path", { d: `M${ax - rx},${yT + h * k} A${rx},${ry} 0 0 0 ${ax + rx},${yT + h * k}`, fill: "none", class: "ink", "stroke-width": 1.8, opacity: 0.45 }, g);
+  S("ellipse", { cx: ax, cy: yT, rx, ry, fill: TONE[tone][0], class: "ink", "stroke-width": 2.8 }, g);
+  glyph(g, ax, ay - h / 2 + ry * 0.45, icon, 30);
+  if (label) pill(ctx, ax + side * (rx + 26), ay - h / 2 - 6, label, { icon: labelIcon, align: side > 0 ? "start" : "end" });
+  return reg(ctx, key, { g, ax, ay, cx: ax, cy: ay - h / 2, rad: rx + 8 }, r * 2 + 50);
+}
+
+/* laptop on a plinth */
+function laptop(ctx, key, ax, ay, o = {}) {
+  const { label, labelIcon = "user", screen = "indigo" } = o;
+  const g = S("g", { class: "node" }, ctx.layer);
+  const [wx, wy] = WI(ax, ay);
+  shadow(ctx, g, wx, wy, 170, 130);
+  slab(ctx, g, wx, wy, 172, 132, 16, { r: 20 });
+  const z0 = 16;
+  slab(ctx, g, wx + 8, wy + 2, 112, 84, 7, { z: z0, r: 8, top: "#eef0f6", side: "#cdd1df", sw: 2.2 });
+  for (let i = 0; i < 4; i++) S("line", { x1: P(wx - 28, wy - 24 + i * 11, z0 + 7)[0], y1: P(wx - 28, wy - 24 + i * 11, z0 + 7)[1], x2: P(wx + 40, wy - 24 + i * 11, z0 + 7)[0], y2: P(wx + 40, wy - 24 + i * 11, z0 + 7)[1], stroke: "#b8bdcd", "stroke-width": 2, "stroke-linecap": "round" }, g);
+  const zb = z0 + 7, sh = 74, lean = 14, x0 = wx - 48;
+  const A = P(x0, wy - 40, zb), B = P(x0, wy + 44, zb), C = P(x0 - lean, wy + 44, zb + sh), D = P(x0 - lean, wy - 40, zb + sh);
+  S("path", { d: roundPoly([A, B, C, D], 6), fill: "#2e2b48", class: "ink", "stroke-width": 2.6 }, g);
+  const bil = (u, v) => { const a = [A[0] + (B[0] - A[0]) * u, A[1] + (B[1] - A[1]) * u], b = [D[0] + (C[0] - D[0]) * u, D[1] + (C[1] - D[1]) * u]; return [a[0] + (b[0] - a[0]) * v, a[1] + (b[1] - a[1]) * v]; };
+  S("polygon", { points: ps([bil(0.07, 0.1), bil(0.93, 0.1), bil(0.93, 0.9), bil(0.07, 0.9)]), fill: TONE[screen][1] }, g);
+  S("polygon", { points: ps([bil(0.07, 0.72), bil(0.93, 0.72), bil(0.93, 0.9), bil(0.07, 0.9)]), fill: TONE[screen][2] }, g);
+  for (const [u1, u2, v] of [[0.15, 0.7, 0.58], [0.15, 0.55, 0.45], [0.15, 0.8, 0.32]]) S("line", { x1: bil(u1, v)[0], y1: bil(u1, v)[1], x2: bil(u2, v)[0], y2: bil(u2, v)[1], stroke: "#fff", "stroke-width": 3, "stroke-linecap": "round", opacity: 0.9 }, g);
+  if (label) pill(ctx, ax, ay + 62, label, { icon: labelIcon });
+  return reg(ctx, key, { g, ax, ay, cx: ax, cy: ay - 40, rad: 92 }, 190);
+}
+
+/* stack of documents on a plinth */
+function docs(ctx, key, ax, ay, o = {}) {
+  const { label } = o;
+  const g = S("g", { class: "node" }, ctx.layer);
+  const [wx, wy] = WI(ax, ay);
+  shadow(ctx, g, wx, wy, 160, 130); slab(ctx, g, wx, wy, 160, 128, 14, { r: 18 });
+  [[0, 0], [6, -4], [-4, 4]].forEach(([dx, dy], i) => slab(ctx, g, wx + dx, wy + dy, 96, 74, 5, { z: 14 + i * 7, r: 5, top: "#ffffff", side: "#dfe2ec", sw: 2.2 }));
+  const zt = 14 + 2 * 7 + 5;
+  for (let i = 0; i < 4; i++) { const a = P(wx - 30, wy - 22 + i * 13, zt), b = P(wx + (i === 3 ? 6 : 30), wy - 22 + i * 13, zt); S("line", { x1: a[0], y1: a[1], x2: b[0], y2: b[1], stroke: "#a9aec2", "stroke-width": 2.4, "stroke-linecap": "round" }, g); }
+  if (label) pill(ctx, ax, ay + 56, label, { icon: "doc" });
+  return reg(ctx, key, { g, ax, ay, cx: ax, cy: ay - 26, rad: 86 }, 180);
+}
+
+/* server rack: stacked units */
+function rack(ctx, key, ax, ay, o = {}) {
+  const { tone = "cyan", label, labelIcon = "globe", units = 3, side = 1 } = o;
+  const g = S("g", { class: "node" }, ctx.layer);
+  const [wx, wy] = WI(ax, ay); shadow(ctx, g, wx, wy, 84, 84);
+  let last;
+  for (let i = 0; i < units; i++) {
+    last = cube(ctx, null, ax, ay, { s: 80, h: 26, z: i * 28, tone, parent: g, ring: false, r: 8, noShadow: true });
+    const f = S("g", { transform: faceL(last) }, g);
+    S("rect", { x: 12, y: 9, width: 38, height: 8, rx: 2, fill: "#fff", stroke: INK, "stroke-width": 1.6, opacity: 0.85 }, f);
+    S("circle", { cx: 64, cy: 13, r: 3.4, fill: i === 1 ? "#22c55e" : ACC, stroke: INK, "stroke-width": 1.2 }, f);
+  }
+  if (label) pill(ctx, ax + side * 92, ay - 50, label, { icon: labelIcon, align: side > 0 ? "start" : "end" });
+  return reg(ctx, key, { g, ax, ay, cx: ax, cy: ay - units * 14, rad: 78 }, 140);
+}
+
+/* agent robot: a cube with a face and an antenna */
+function robot(ctx, key, ax, ay, o = {}) {
+  const { s = 104, h = 84, tone = "indigo", label, mood = "happy" } = o;
+  const n = cube(ctx, null, ax, ay, { s, h, tone, r: 16 });
+  const f = S("g", { transform: faceL(n) }, n.g);
+  for (const u of [s * 0.3, s * 0.66]) { S("ellipse", { cx: u, cy: h * 0.58, rx: s * 0.09, ry: s * 0.11, fill: "#fff", stroke: INK, "stroke-width": 2.2 }, f); S("ellipse", { cx: u + 2, cy: h * 0.6, rx: s * 0.04, ry: s * 0.05, fill: INK }, f); }
+  S("path", { d: mood === "alarm" ? `M${s * 0.38} ${h * 0.24} h${s * 0.24}` : `M${s * 0.36} ${h * 0.28} q${s * 0.12} ${-h * 0.12} ${s * 0.26} 0`, fill: "none", stroke: INK, "stroke-width": 2.6, "stroke-linecap": "round" }, f);
+  const top = P(...WI(ax, ay), h);
+  S("line", { x1: top[0], y1: top[1], x2: top[0], y2: top[1] - 30, class: "ink", "stroke-width": 2.8 }, n.g);
+  S("circle", { cx: top[0], cy: top[1] - 36, r: 7, fill: ACC, class: "ink", "stroke-width": 2.4 }, n.g);
+  if (label) pill(ctx, ax, ay + 44, label, { icon: "spark", kind: "accent" });
+  return reg(ctx, key, { ...n, cy: ay - h / 2 - 10 }, s + 56);
+}
+
+/* standing web page (faces lower-right) */
+function webpage(ctx, key, ax, ay, o = {}) {
+  const { label, hidden } = o;
+  const g = S("g", { class: "node" }, ctx.layer);
+  const [wx, wy] = WI(ax, ay); shadow(ctx, g, wx, wy, 60, 170);
+  slab(ctx, g, wx, wy, 70, 176, 12, { r: 14 });
+  const W = 150, Hh = 112, z = 12, x = wx;
+  const TL = P(x, wy + W / 2, z + Hh), TR = P(x, wy - W / 2, z + Hh), BR = P(x, wy - W / 2, z), BL = P(x, wy + W / 2, z);
+  const k = (p) => [p[0] - 9 * C30, p[1] - 9 * 0.5];
+  S("path", { d: roundPoly([k(TL), k(TR), k(BR), k(BL)], 8), fill: "#dfe2ec", class: "ink", "stroke-width": 2.4 }, g);
+  S("path", { d: roundPoly([TL, TR, BR, BL], 8), fill: "#fff", class: "ink", "stroke-width": 2.6 }, g);
+  const c = S("g", { transform: `matrix(${C30} -0.5 0 1 ${TL[0]} ${TL[1]})` }, g);
+  S("rect", { x: 0, y: 0, width: W, height: 20, fill: "#eef0f6" }, c);
+  [12, 24, 36].forEach((cx, i) => S("circle", { cx, cy: 10, r: 4, fill: ["#f87171", "#fbbf24", "#34d399"][i] }, c));
+  [[34, 110], [48, 90], [62, 120]].forEach(([y, w]) => S("rect", { x: 14, y, width: w, height: 7, rx: 3.5, fill: "#cfd3e0" }, c));
+  if (hidden) { S("rect", { x: 10, y: 78, width: 130, height: 22, rx: 5, fill: "#ffe4ea", stroke: "#e11d48", "stroke-width": 1.6 }, c); S("text", { x: 16, y: 93, style: "font:700 9.5px var(--mono)", fill: "#be123c" }, c).textContent = hidden; }
+  if (label) pill(ctx, ax + 12, ay + 60, label, { icon: "globe" });
+  return reg(ctx, key, { g, ax, ay, cx: ax, cy: ay - 60, rad: 88 }, 190);
+}
+
+/* microphone and speaker */
+function mic(ctx, key, ax, ay, o = {}) {
+  const g = S("g", { class: "node" }, ctx.layer);
+  const [wx, wy] = WI(ax, ay); shadow(ctx, g, wx, wy, 120, 100); slab(ctx, g, wx, wy, 120, 100, 14, { r: 18 });
+  const base = P(wx, wy, 14);
+  S("path", { d: `M${base[0] - 4},${base[1]} V${base[1] - 70} H${base[0] + 4} V${base[1]} Z`, fill: "#c3c8d9", class: "ink", "stroke-width": 2.2 }, g);
+  const hy = base[1] - 96;
+  S("rect", { x: base[0] - 24, y: hy - 30, width: 48, height: 64, rx: 24, fill: `url(#${ctx.pid}-slate-c)`, class: "ink", "stroke-width": 2.8 }, g);
+  for (let i = 0; i < 4; i++) S("line", { x1: base[0] - 18, y1: hy - 16 + i * 10, x2: base[0] + 18, y2: hy - 16 + i * 10, stroke: INK, "stroke-width": 1.6, opacity: 0.4 }, g);
+  S("path", { d: `M${base[0] - 34},${hy + 8} a34 34 0 0 0 68 0`, fill: "none", class: "ink", "stroke-width": 2.6 }, g);
+  if (o.label) pill(ctx, ax, ay + 52, o.label, { icon: "user" });
+  return reg(ctx, key, { g, ax, ay, cx: ax, cy: ay - 70, rad: 70 }, 150);
+}
+function speaker(ctx, key, ax, ay, o = {}) {
+  const n = cube(ctx, null, ax, ay, { s: 74, h: 96, tone: "slate", r: 12 });
+  const f = S("g", { transform: faceL(n) }, n.g);
+  S("circle", { cx: 37, cy: 34, r: 22, fill: "#fff", stroke: INK, "stroke-width": 2.4 }, f); S("circle", { cx: 37, cy: 34, r: 10, fill: TONE.indigo[2], stroke: INK, "stroke-width": 2 }, f);
+  S("circle", { cx: 37, cy: 76, r: 8, fill: "#fff", stroke: INK, "stroke-width": 2 }, f);
+  if (o.label) pill(ctx, ax, ay + 44, o.label, { icon: "wave" });
+  return reg(ctx, key, { ...n, cy: ay - 52 }, 130);
+}
+
+/* a crowd of users on a plinth */
+function crowd(ctx, key, ax, ay, o = {}) {
+  const g = S("g", { class: "node" }, ctx.layer);
+  const [wx, wy] = WI(ax, ay); shadow(ctx, g, wx, wy, 170, 140); slab(ctx, g, wx, wy, 170, 140, 14, { r: 20 });
+  const cols = ["#b5abf8", "#9fd9ea", "#a3dbc3", "#f5bd96", "#f2a6b8", "#f0d676"];
+  const spots = []; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) spots.push([wx - 46 + i * 46, wy - 40 + j * 40]);
+  spots.sort((a, b) => a[0] + a[1] - (b[0] + b[1])).forEach(([x, y], i) => {
+    const b = P(x, y, 14), c = cols[i % cols.length];
+    S("path", { d: `M${b[0] - 11},${b[1]} q0 -30 11 -30 q11 0 11 30 q0 7 -11 7 q-11 0 -11 -7z`, fill: c, class: "ink", "stroke-width": 2.4 }, g);
+    S("circle", { cx: b[0], cy: b[1] - 38, r: 10, fill: "#fff", class: "ink", "stroke-width": 2.4 }, g);
+  });
+  if (o.label) pill(ctx, ax, ay + 60, o.label, { icon: "user" });
+  return reg(ctx, key, { g, ax, ay, cx: ax, cy: ay - 30, rad: 96 }, 190);
+}
+
+/* pill callout (screen coordinates) */
+function pill(ctx, x, y, text, o = {}) {
+  const { icon, kind = "", size = 13.5, align = "middle", parent } = o;
+  const w = text.length * size * 0.62 + (icon ? 44 : 28), h = size + 19;
+  const x0 = align === "start" ? x : align === "end" ? x - w : x - w / 2;
+  const g = S("g", { class: "pill " + kind, transform: `translate(${x0},${y - h / 2})` }, parent || ctx.top);
+  S("rect", { width: w, height: h, rx: h / 2, class: "pill-bg" }, g);
+  if (icon) { S("circle", { cx: h / 2 + 1, cy: h / 2, r: h / 2 - 6, class: "ic" }, g); glyph(g, h / 2 + 1, h / 2, icon, 14, "glyph"); }
+  const t = S("text", { x: icon ? h + 4 : w / 2, y: h / 2 + 5, "text-anchor": icon ? "start" : "middle" }, g); t.textContent = text;
+  return { g, t, w, h };
+}
+function gauge(ctx, x, y, label, pct, o = {}) {
+  const w = label.length * 8.4 + 142, h = 34;
+  const g = S("g", { class: "pill", transform: `translate(${x - w / 2},${y - h / 2})` }, ctx.top);
+  S("rect", { width: w, height: h, rx: 17, class: "pill-bg" }, g);
+  glyph(g, 18, 17, "gauge", 16);
+  S("text", { x: 32, y: 22 }, g).textContent = label;
+  const bx = 40 + label.length * 8.4;
+  S("rect", { x: bx, y: 12, width: 44, height: 10, rx: 5, fill: "#eceef5", stroke: INK, "stroke-width": 1.6 }, g);
+  const bar = S("rect", { x: bx + 1.5, y: 13.5, width: 41 * pct / 100, height: 7, rx: 3.5, fill: o.color || ACC }, g);
+  const v = S("text", { x: w - 12, y: 22, "text-anchor": "end" }, g); v.textContent = pct + "%";
+  return { set(p, c) { bar.setAttribute("width", Math.max(2, 41 * Math.min(100, p) / 100)); v.textContent = Math.round(p) + "%"; if (c) bar.setAttribute("fill", c); } };
+}
+
+/* arrow between two nodes, with optional label and travelling packets */
+function arrow(ctx, key, A, B, o = {}) {
+  const { bend = 0, dash = false, label, lo = -24, kind = "accent", t1 = 0, t2 = 0 } = o;
+  const a = ctx.nodes[A] || A, b = ctx.nodes[B] || B;
+  const dx = b.cx - a.cx, dy = b.cy - a.cy, L = Math.hypot(dx, dy), ux = dx / L, uy = dy / L;
+  const x1 = a.cx + ux * (a.rad + t1), y1 = a.cy + uy * (a.rad + t1), x2 = b.cx - ux * (b.rad + t2), y2 = b.cy - uy * (b.rad + t2);
+  const mx = (x1 + x2) / 2 - uy * bend, my = (y1 + y2) / 2 + ux * bend;
+  const g = S("g", { class: `arr k-${kind}${dash ? " dash" : ""}` }, ctx.arrowsL);
+  const path = S("path", { d: `M${x1},${y1} Q${mx},${my} ${x2},${y2}`, class: "line", "marker-end": `url(#${ctx.pid}-ah-${kind === "ink" ? "ink" : kind})` }, g);
+  const col = { accent: ACC, cyan: "#06b6d4", red: "#e11d48", ink: ACC }[kind];
+  const dots = [0, 1].map(() => S("circle", { r: 8.5, class: "pk", fill: col, stroke: INK, "stroke-width": 2.6 }, ctx.top));
+  let lab = null;
+  if (label) {
+    const lx = 0.25 * x1 + 0.5 * mx + 0.25 * x2 - uy * lo, ly = 0.25 * y1 + 0.5 * my + 0.25 * y2 + ux * lo;
+    lab = pill(ctx, lx, ly, label, { kind: kind === "red" ? "warn" : "", size: 12.5 }); lab.g.classList.add("arr-l");
+  }
+  const arr = { g, path, dots, lab, len: path.getTotalLength() };
+  ctx.arrows[key] = arr; return arr;
+}
+
+/* ============================================================
+   Scene runner: steps, captions, stats, packets
+   ============================================================ */
+const whenVisible = (node, onIn, onOut) => new IntersectionObserver((es) => es.forEach((e) => (e.isIntersecting ? onIn() : onOut())), { threshold: 0.12 }).observe(node);
+
+function scene(def) {
+  const stage = document.getElementById(def.id);
+  const svg = S("svg", { viewBox: def.view || "-590 -335 1180 705", preserveAspectRatio: "xMidYMid meet" }, stage);
+  const ctx = makeCtx(svg, def.id);
+  def.build(ctx);
+  /* auto-fit: measure everything drawn and zoom so it fits between the stats bar and the caption.
+     More things = zoom out; fewer = zoom in (capped). Re-fits on resize. */
+  const box = (() => {
+    let x1 = Infinity, y1 = Infinity, x2 = -Infinity, y2 = -Infinity;
+    for (const g of [ctx.floor, ctx.arrowsL, ctx.layer, ctx.top]) {
+      const b = g.getBBox(); if (!b.width && !b.height) continue;
+      x1 = Math.min(x1, b.x); y1 = Math.min(y1, b.y); x2 = Math.max(x2, b.x + b.width); y2 = Math.max(y2, b.y + b.height);
+    }
+    return { x: x1, y: y1, w: x2 - x1, h: y2 - y1 };
+  })();
+  const fit = () => {
+    const W = stage.clientWidth, Hh = stage.clientHeight, padX = 28, top = 86, bot = 82;
+    const s = Math.min((W - padX * 2) / box.w, (Hh - top - bot) / box.h, def.maxZoom || 1.2);
+    const vw = W / s, vh = Hh / s, cx = box.x + box.w / 2, cy = box.y + box.h / 2;
+    svg.setAttribute("viewBox", `${cx - vw / 2} ${cy - (top + (Hh - top - bot) / 2) / s} ${vw} ${vh}`);
+  };
+  fit(); new ResizeObserver(fit).observe(stage);
+  const stats = H("div", "stats", stage);
+  const keys = Object.keys(def.steps[0].stats || {});
+  const statEls = keys.map((k) => { const d = H("div", "stat", stats, `<i>${k}</i><b>—</b>`); return d; });
+  const ctl = H("div", "ctl", stage);
+  const bPrev = H("button", "", ctl, "◀"), bPlay = H("button", "on", ctl, "❚❚"), bNext = H("button", "", ctl, "▶");
+  const cap = H("div", "cap", stage, `<span class="n"></span><span class="t"></span><span class="dots"></span>`);
+  const dots = def.steps.map((_, i) => { const d = H("i", "", cap.querySelector(".dots")); d.onclick = () => { go(i); playing = false; bPlay.classList.remove("on"); bPlay.textContent = "▶ Play"; }; return d; });
+  let i = 0, t0 = performance.now(), playing = !REDUCE, active = [];
+  function go(k) {
+    i = (k + def.steps.length) % def.steps.length; t0 = performance.now();
+    const st = def.steps[i];
+    Object.values(ctx.arrows).forEach((a) => { a.g.classList.remove("on"); a.lab && a.lab.g.classList.remove("on"); a.dots.forEach((d) => d.style.opacity = 0); });
+    active = (st.a || []).map((k) => ctx.arrows[k]).filter(Boolean);
+    active.forEach((a) => { a.g.classList.add("on"); a.lab && a.lab.g.classList.add("on"); });
+    Object.values(ctx.nodes).forEach((n) => { n.ring && n.ring.classList.toggle("on", (st.focus || []).includes(n.key)); n.g.classList.toggle("up", (st.focus || []).includes(n.key)); });
+    cap.querySelector(".n").textContent = `${String(i + 1).padStart(2, "0")} / ${String(def.steps.length).padStart(2, "0")}`;
+    cap.querySelector(".t").textContent = st.cap;
+    dots.forEach((d, j) => d.classList.toggle("on", j === i));
+    keys.forEach((k, j) => { const v = (st.stats || {})[k] ?? "—"; const b = statEls[j].querySelector("b"); statEls[j].classList.toggle("hot", b.textContent !== String(v) && v !== "—"); b.textContent = v; });
+    def.onStep && def.onStep(ctx, i);
+  }
+  bPrev.onclick = () => { playing = false; bPlay.classList.remove("on"); bPlay.textContent = "▶ Play"; go(i - 1); };
+  bNext.onclick = () => { playing = false; bPlay.classList.remove("on"); bPlay.textContent = "▶ Play"; go(i + 1); };
+  bPlay.onclick = () => { playing = !playing; bPlay.classList.toggle("on", playing); bPlay.textContent = playing ? "❚❚" : "▶ Play"; if (playing) t0 = performance.now(); };
+  go(0);
+  let raf = 0, on = false;
+  const tick = (t) => {
+    const el = t - t0, dur = def.steps[i].dur || 3200;
+    if (playing && el > dur) go(i + 1);
+    active.forEach((a, ai) => a.dots.forEach((d, j) => {
+      const k = ((el / 1500) + j * 0.5 + ai * 0.12) % 1, p = a.path.getPointAtLength(k * a.len);
+      d.setAttribute("cx", p.x); d.setAttribute("cy", p.y); d.style.opacity = k < 0.06 ? k / 0.06 : k > 0.94 ? (1 - k) / 0.06 : 1;
+    }));
+    def.frame && def.frame(ctx, el, i);
+    raf = requestAnimationFrame(tick);
+  };
+  whenVisible(stage, () => { if (!on) { on = true; raf = requestAnimationFrame(tick); } }, () => { on = false; cancelAnimationFrame(raf); });
+}
+
+/* ============================================================
+   Page scaffold
+   ============================================================ */
+const store = { get(k, d) { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } }, set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch {} } };
+const LIST = [
+  ["d1", "How an LLM answers", "From your prompt to tokens to a streamed answer."],
+  ["d2", "Simple RAG", "Index once (dashed), then embed, search, prompt and answer on every question."],
+  ["d3", "Embeddings: meaning has a place", "Words are pins on a map of meaning. A question lands near its neighbours."],
+  ["d4", "The agent loop", "Think, call a tool, read the result, repeat until the goal is done."],
+  ["d5", "Tool calling with MCP", "Your app discovers tools on MCP servers, then calls them."],
+  ["d6", "Subagents & multi-agent", "An orchestrator splits the work, workers run in their own windows, results merge."],
+  ["d7", "Prompt injection, blocked", "A hidden line on a web page tries to steer the agent. Approval stops the send."],
+  ["d8", "Voice AI pipeline", "Speech to text, an LLM, text to speech, and the latency budget across them."],
+  ["d9", "The context window", "System, tools and history fill a fixed tray. When it overflows, the oldest turns fall out."],
+  ["d10", "Cost, caching & routing", "A cache answers repeats, a router sends easy work to a small model."],
+];
+const favs = new Set(store.get("lab2:favs", []));
+const nav = document.getElementById("nav"), main = document.getElementById("main");
+LIST.forEach(([id, name, desc], i) => {
+  const a = H("a", favs.has(id) ? "fav" : "", nav, `<b>${String(i + 1).padStart(2, "0")}</b>${name}`); a.href = "#c-" + id; a.dataset.id = id;
+  const c = H("section", "card", main); c.id = "c-" + id;
+  c.innerHTML = `<div class="card-h"><span class="num">${String(i + 1).padStart(2, "0")}</span><div class="grow"><h2>${name}</h2><p>${desc}</p></div><button class="heart${favs.has(id) ? " on" : ""}" aria-label="Like">${favs.has(id) ? "♥" : "♡"}</button></div><div class="stage" id="${id}"></div>`;
+  c.querySelector(".heart").onclick = (e) => { const b = e.currentTarget; favs.has(id) ? favs.delete(id) : favs.add(id); b.classList.toggle("on"); b.textContent = favs.has(id) ? "♥" : "♡"; nav.querySelector(`[data-id="${id}"]`).classList.toggle("fav"); store.set("lab2:favs", [...favs]); picks(); };
+});
+const pk = H("span", "picks", nav);
+const picks = () => { const n = LIST.map(([id], i) => favs.has(id) ? String(i + 1).padStart(2, "0") : null).filter(Boolean); pk.textContent = n.length ? "♥ " + n.join(" · ") : "♡ pick favourites"; };
+picks();
+
+/* ============================================================
+   01 How an LLM answers
+   ============================================================ */
+scene({
+  id: "d1",
+  build(c) {
+    laptop(c, "you", -390, 120, { label: "you" });
+    pill(c, -390, -36, "“Explain RAG simply”", { icon: "user" });
+    cube(c, "tok", -110, 40, { tone: "cyan", icon: "chunk", title: "Tokenizer", sub: "text → ids" });
+    cube(c, "llm", 180, -10, { tone: "indigo", s: 112, h: 88, icon: "spark", title: "LLM", sub: "next token" });
+    c.g1 = gauge(c, 180, -180, "context", 3);
+    const card = S("g", { class: "node" }, c.layer);
+    S("rect", { x: 330, y: 70, width: 240, height: 96, rx: 18, fill: "#fff", class: "ink", "stroke-width": 2.8 }, card);
+    S("text", { x: 350, y: 98, class: "sub" }, card).textContent = "ANSWER · streaming";
+    c.typeA = S("text", { x: 350, y: 124, class: "lbl", style: "font-size:14px" }, card); c.typeB = S("text", { x: 350, y: 146, class: "lbl", style: "font-size:14px" }, card);
+    reg(c, "ans", { g: card, ax: 450, ay: 118, cx: 450, cy: 118, rad: 124 });
+    arrow(c, "a1", "you", "tok", { label: "42 tokens" });
+    arrow(c, "a2", "tok", "llm", { label: "[8302, 17, 411 …]" });
+    arrow(c, "a3", "llm", "ans", { label: "one token at a time", kind: "cyan" });
+  },
+  steps: [
+    { a: ["a1"], focus: ["you"], cap: "You type a prompt. To the model it is only text.", stats: { "Tokens in": "—", "First token": "—", "Tokens out": "—", "Total": "—" } },
+    { a: ["a1"], focus: ["tok"], cap: "The tokenizer chops it into 42 tokens.", stats: { "Tokens in": "42", "First token": "—", "Tokens out": "—", "Total": "—" } },
+    { a: ["a2"], focus: ["tok", "llm"], cap: "Each token becomes a number. The model only ever sees numbers.", stats: { "Tokens in": "42", "First token": "—", "Tokens out": "—", "Total": "—" } },
+    { a: ["a3"], focus: ["llm"], cap: "It predicts the next token, appends it, and repeats. That is generation.", dur: 4200, stats: { "Tokens in": "42", "First token": "0.3 s", "Tokens out": "58", "Total": "1.4 s" } },
+  ],
+  onStep(c, i) { c.g1.set(i >= 2 ? 3 : 1); },
+  frame(c, el, i) {
+    const A = "RAG = look it up first,", B = "then answer from it.";
+    const n = i === 3 ? Math.floor(el / 55) : i < 3 ? 0 : 99;
+    c.typeA.textContent = A.slice(0, Math.min(A.length, n)); c.typeB.textContent = B.slice(0, Math.max(0, Math.min(B.length, n - A.length)));
+  },
+});
+
+/* ============================================================
+   02 Simple RAG
+   ============================================================ */
+scene({
+  id: "d2",
+  build(c) {
+    pill(c, -380, -205, "INDEXING · RUNS ONCE", { kind: "ghost", size: 12 });
+    docs(c, "docs", -420, -40, { label: "handbook" });
+    cube(c, "chunk", -190, -140, { tone: "mint", icon: "chunk", title: "Chunker", sub: "6 chunks", s: 84, h: 62 });
+    cylinder(c, "db", 260, -140, { tone: "indigo", label: "vector index", labelIcon: "db", side: 1 });
+    cube(c, "emb", 30, -40, { tone: "indigo", icon: "chip", title: "Embedder", sub: "text → vector", s: 88, h: 66 });
+    laptop(c, "q", -320, 190, { label: "question" });
+    cube(c, "prompt", 220, 170, { tone: "peach", icon: "layers", title: "Prompt", sub: "context + question", s: 86, h: 62 });
+    cube(c, "llm", 450, 60, { tone: "indigo", icon: "spark", title: "LLM", sub: "answers", s: 92, h: 70 });
+    c.ansPill = pill(c, 450, -112, "“5–7 business days” ✓", { kind: "ok" });
+    arrow(c, "i1", "docs", "chunk", { dash: true, label: "files", kind: "ink" });
+    arrow(c, "i2", "chunk", "emb", { dash: true, label: "chunks", kind: "ink" });
+    arrow(c, "i3", "emb", "db", { dash: true, label: "vectors", kind: "ink", bend: -30 });
+    arrow(c, "q1", "q", "emb", { label: "embed question" });
+    arrow(c, "q2", "emb", "db", { label: "search · cosine", bend: 34 });
+    arrow(c, "q3", "db", "prompt", { label: "top-3 chunks", kind: "cyan", bend: -20 });
+    arrow(c, "q4", "q", "prompt", { label: "question", bend: 10 });
+    arrow(c, "q5", "prompt", "llm", { label: "≈ 585 tokens" });
+  },
+  steps: [
+    { a: ["i1"], focus: ["docs"], cap: "Once, ahead of time: the handbook goes to the chunker.", stats: { "Chunks": "—", "Top-k": "—", "Prompt": "—", "Answer": "—" } },
+    { a: ["i2"], focus: ["chunk"], cap: "It is cut into 6 small chunks, each tagged with its source.", stats: { "Chunks": "6", "Top-k": "—", "Prompt": "—", "Answer": "—" } },
+    { a: ["i3"], focus: ["emb", "db"], cap: "Every chunk becomes a vector and is stored in the index.", stats: { "Chunks": "6", "Top-k": "—", "Prompt": "—", "Answer": "—" } },
+    { a: ["q1"], focus: ["q", "emb"], cap: "A question arrives and is embedded with the same model.", stats: { "Chunks": "6", "Top-k": "—", "Prompt": "—", "Answer": "—" } },
+    { a: ["q2"], focus: ["db"], cap: "The index finds the chunks closest in meaning.", stats: { "Chunks": "6", "Top-k": "3", "Prompt": "—", "Answer": "—" } },
+    { a: ["q3", "q4"], focus: ["prompt"], cap: "The best 3 chunks and the question are packed into one prompt.", stats: { "Chunks": "6", "Top-k": "3", "Prompt": "585 tok", "Answer": "—" } },
+    { a: ["q5"], focus: ["llm"], cap: "The model answers from that context, and can cite it.", stats: { "Chunks": "6", "Top-k": "3", "Prompt": "585 tok", "Answer": "2.1 s" } },
+  ],
+  onStep(c, i) { c.ansPill.g.style.opacity = i === 6 ? 1 : 0; c.ansPill.g.style.transition = "opacity .4s"; },
+});
+
+/* ============================================================
+   03 Embeddings
+   ============================================================ */
+scene({
+  id: "d3",
+  build(c) {
+    const [wx, wy] = WI(0, 60);
+    shadow(c, c.layer, wx, wy, 640, 330);
+    slab(c, c.layer, wx, wy, 640, 330, 18, { r: 34, top: "#fbfbff", side: "#e3e4f0" });
+    pill(c, -330, -150, "MEANING SPACE", { kind: "ghost", size: 12 });
+    const zone = (ax, ay, w, d, tone, name) => { const [x, y] = WI(ax, ay); S("path", { d: roundPoly([P(x - w / 2, y - d / 2, 18), P(x + w / 2, y - d / 2, 18), P(x + w / 2, y + d / 2, 18), P(x - w / 2, y + d / 2, 18)], 30), fill: TONE[tone][1], opacity: 0.55, stroke: TONE[tone][2], "stroke-width": 2, "stroke-dasharray": "6 6" }, c.layer); };
+    zone(-200, 40, 200, 170, "rose"); zone(120, -40, 190, 150, "cyan"); zone(190, 150, 180, 160, "lemon");
+    const pin = (key, ax, ay, text, tone, hl) => {
+      const g = S("g", { class: "node" }, c.layer), top = ay - 18;
+      S("ellipse", { cx: ax, cy: top, rx: 9, ry: 5, fill: "rgba(36,34,58,.25)" }, g);
+      S("line", { x1: ax, y1: top, x2: ax, y2: top - 52, class: "ink", "stroke-width": 2.6 }, g);
+      S("circle", { cx: ax, cy: top, r: 4, fill: INK }, g);
+      const p = pill(c, ax, top - 66, text, { parent: g, kind: hl ? "accent" : "" });
+      p.g.querySelector(".pill-bg").setAttribute("fill", hl ? ACC : TONE[tone][0]);
+      return reg(c, key, { g, ax, ay, cx: ax, cy: top - 66, rad: 22 });
+    };
+    pin("cat", -290, 10, "cat", "rose"); pin("kitten", -190, -30, "kitten", "rose"); pin("dog", -265, 105, "dog", "rose");
+    pin("car", 70, -60, "car", "cyan"); pin("truck", 160, -30, "truck", "cyan"); pin("bus", 110, 30, "bus", "cyan");
+    pin("apple", 150, 130, "apple", "lemon"); pin("banana", 240, 120, "banana", "lemon"); pin("orange", 200, 200, "orange", "lemon");
+    c.q = pin("q", -130, 95, "puppy?", "indigo", true);
+    arrow(c, "n1", "q", "dog", { dash: true, kind: "accent" });
+    arrow(c, "n2", "q", "kitten", { dash: true, kind: "accent" });
+    arrow(c, "n3", "q", "cat", { dash: true, kind: "accent" });
+    arrow(c, "f1", "q", "truck", { label: "-0.12", dash: true, kind: "red", bend: -40 });
+  },
+  steps: [
+    { a: [], focus: [], cap: "An embedding model turns every word into a point. Similar meanings sit close.", stats: { "Words": "9", "Dimensions": "2 (toy)", "Nearest": "—", "Farthest": "—" } },
+    { a: [], focus: ["q"], cap: "A new word, “puppy”, lands right next to the animals.", stats: { "Words": "9", "Dimensions": "2 (toy)", "Nearest": "—", "Farthest": "—" } },
+    { a: ["n1", "n2", "n3"], focus: ["q"], cap: "Cosine similarity ranks its neighbours: dog 0.94, kitten 0.91, cat 0.89.", stats: { "Words": "9", "Dimensions": "2 (toy)", "Nearest": "dog 0.94", "Farthest": "—" } },
+    { a: ["f1"], focus: ["q", "truck"], cap: "Unrelated words point the other way and score near zero or below.", stats: { "Words": "9", "Dimensions": "2 (toy)", "Nearest": "dog 0.94", "Farthest": "truck −0.12" } },
+  ],
+  onStep(c, i) { c.q.g.style.transition = "transform .7s cubic-bezier(.3,1.6,.5,1), opacity .4s"; c.q.g.style.opacity = i === 0 ? 0 : 1; c.q.g.style.transform = i === 0 ? "translateY(-120px)" : "translateY(0)"; },
+});
+
+/* ============================================================
+   04 The agent loop
+   ============================================================ */
+scene({
+  id: "d4",
+  build(c) {
+    pill(c, 0, -205, "Goal: book 30 min with Sam next week", { icon: "spark", kind: "accent" });
+    rack(c, "search", -330, -60, { tone: "cyan", label: "web search", labelIcon: "search", side: -1 });
+    cube(c, "calc", 330, -70, { tone: "lemon", icon: "calc", title: "Calculator", sub: "unused", s: 80, h: 58 });
+    robot(c, "agent", 0, 70, { label: "agent" });
+    cylinder(c, "mem", -330, 200, { tone: "slate", icon: "doc", label: "notes", labelIcon: "doc", r: 44, h: 60 });
+    cube(c, "cal", 330, 200, { tone: "mint", icon: "cal", title: "Calendar", sub: "find_slots", s: 84, h: 62 });
+    arrow(c, "c1", "agent", "search", { label: "search(“Sam timezone”)", bend: -22 });
+    arrow(c, "r1", "search", "agent", { label: "UTC+1", kind: "cyan", dash: true, bend: -22 });
+    arrow(c, "c2", "agent", "cal", { label: "find_slots(30 min)", bend: -22 });
+    arrow(c, "r2", "cal", "agent", { label: "Tue 10:00 · Wed 15:00", kind: "cyan", dash: true, bend: -22 });
+    arrow(c, "m1", "agent", "mem", { label: "save: Sam is UTC+1", bend: 18 });
+  },
+  steps: [
+    { a: [], focus: ["agent"], cap: "The agent reads the goal and decides its first step.", stats: { "Step": "1 / 8", "Tool calls": "0", "Tokens": "1.2k" } },
+    { a: ["c1"], focus: ["search"], cap: "It calls a tool: web search, to find Sam's time zone.", stats: { "Step": "2 / 8", "Tool calls": "1", "Tokens": "1.6k" } },
+    { a: ["r1"], focus: ["agent"], cap: "The result comes back and is added to its context.", stats: { "Step": "3 / 8", "Tool calls": "1", "Tokens": "2.1k" } },
+    { a: ["m1"], focus: ["mem"], cap: "It saves a note so the fact survives a long run.", stats: { "Step": "4 / 8", "Tool calls": "2", "Tokens": "2.3k" } },
+    { a: ["c2"], focus: ["cal"], cap: "Next tool: the calendar, for free 30-minute slots.", stats: { "Step": "5 / 8", "Tool calls": "3", "Tokens": "2.6k" } },
+    { a: ["r2"], focus: ["agent"], cap: "Two slots come back. The calculator was never needed: the agent chose.", stats: { "Step": "6 / 8", "Tool calls": "3", "Tokens": "3.0k" } },
+    { a: [], focus: ["agent"], cap: "Goal met, so it stops and answers. A step limit stops it if it never does.", stats: { "Step": "done", "Tool calls": "3", "Tokens": "3.2k" } },
+  ],
+});
+
+/* ============================================================
+   05 Tool calling with MCP
+   ============================================================ */
+scene({
+  id: "d5",
+  build(c) {
+    rack(c, "files", 200, -150, { tone: "mint", label: "files server", labelIcon: "folder" });
+    laptop(c, "app", -420, 80, { label: "your app", screen: "cyan" });
+    cube(c, "client", -150, 70, { tone: "slate", icon: "plug", title: "MCP client", sub: "inside the app", s: 84, h: 60 });
+    rack(c, "git", 270, 40, { tone: "indigo", label: "git server", labelIcon: "git" });
+    rack(c, "dbs", 200, 225, { tone: "peach", label: "database server", labelIcon: "db" });
+    arrow(c, "u", "app", "client", { label: "model wants a tool" });
+    arrow(c, "l1", "client", "files", { dash: true, label: "tools/list", bend: 12 });
+    arrow(c, "l2", "client", "git", { dash: true, label: "tools/list" });
+    arrow(c, "l3", "client", "dbs", { dash: true, label: "tools/list", bend: -12 });
+    arrow(c, "c1", "client", "files", { label: "tools/call · search_files", bend: 12 });
+    arrow(c, "r1", "files", "client", { kind: "cyan", dash: true, label: "3 matches", bend: 40 });
+    arrow(c, "c3", "client", "dbs", { label: "tools/call · run_query", bend: -12 });
+    arrow(c, "r3", "dbs", "client", { kind: "cyan", dash: true, label: "12 rows", bend: -40 });
+  },
+  steps: [
+    { a: ["u"], focus: ["app", "client"], cap: "Your app's model needs outside data. The MCP client handles that.", stats: { "Servers": "3", "Tools found": "—", "Calls": "0" } },
+    { a: ["l1", "l2", "l3"], focus: ["client"], cap: "First it asks every server what tools it has: tools/list.", stats: { "Servers": "3", "Tools found": "9", "Calls": "0" } },
+    { a: ["c1"], focus: ["files"], cap: "The model picks one, and the client sends tools/call with JSON arguments.", stats: { "Servers": "3", "Tools found": "9", "Calls": "1" } },
+    { a: ["r1"], focus: ["client"], cap: "The server runs it and returns the result as data.", stats: { "Servers": "3", "Tools found": "9", "Calls": "1" } },
+    { a: ["c3"], focus: ["dbs"], cap: "Same plug, different server: a database query.", stats: { "Servers": "3", "Tools found": "9", "Calls": "2" } },
+    { a: ["r3"], focus: ["client"], cap: "Write a tool once as an MCP server; any MCP app can use it.", stats: { "Servers": "3", "Tools found": "9", "Calls": "2" } },
+  ],
+});
+
+/* ============================================================
+   06 Subagents & multi-agent
+   ============================================================ */
+scene({
+  id: "d6",
+  build(c) {
+    const worker = (key, ax, ay, tone, label) => { const [x, y] = WI(ax, ay); slab(c, c.layer, x, y, 150, 150, 12, { r: 22, top: "#fbfbff" }); const n = robot(c, key, ax, ay - 12, { s: 74, h: 60, tone }); pill(c, ax + 90, ay - 50, label, { align: "start", size: 12.5 }); return n; };
+    worker("w1", 150, -150, "cyan", "research · own window");
+    robot(c, "orch", -270, 50, { s: 116, h: 92, label: "orchestrator" });
+    worker("w2", 210, 40, "mint", "code · own window");
+    worker("w3", 150, 230, "peach", "review · own window");
+    docs(c, "rep", -470, 220, { label: "report" });
+    arrow(c, "t1", "orch", "w1", { label: "task", bend: 10 }); arrow(c, "t2", "orch", "w2", { label: "task" }); arrow(c, "t3", "orch", "w3", { label: "task", bend: -10 });
+    arrow(c, "s1", "w1", "orch", { kind: "cyan", dash: true, label: "summary", bend: 50 }); arrow(c, "s2", "w2", "orch", { kind: "cyan", dash: true, label: "summary", bend: 40 }); arrow(c, "s3", "w3", "orch", { kind: "cyan", dash: true, label: "summary", bend: -50 });
+    arrow(c, "m", "orch", "rep", { label: "merge" });
+  },
+  steps: [
+    { a: [], focus: ["orch"], cap: "A big task. The orchestrator plans how to split it.", stats: { "Agents": "1", "Parallel": "—", "Parent context": "6k" } },
+    { a: ["t1", "t2", "t3"], focus: ["w1", "w2", "w3"], cap: "Each piece goes to a worker with its own context window.", stats: { "Agents": "4", "Parallel": "3", "Parent context": "6k" } },
+    { a: [], focus: ["w1", "w2", "w3"], cap: "Workers read a lot, but that detail stays in their windows.", stats: { "Agents": "4", "Parallel": "3", "Parent context": "6k" } },
+    { a: ["s1", "s2", "s3"], focus: ["orch"], cap: "Only short summaries come back, so the parent stays uncluttered.", stats: { "Agents": "4", "Parallel": "3", "Parent context": "8k" } },
+    { a: ["m"], focus: ["rep"], cap: "The orchestrator merges them into one result.", stats: { "Agents": "4", "Parallel": "3", "Parent context": "8k" } },
+  ],
+});
+
+/* ============================================================
+   07 Prompt injection
+   ============================================================ */
+scene({
+  id: "d7",
+  build(c) {
+    webpage(c, "web", 230, -110, { label: "recipe page", hidden: "ignore previous instructions…" });
+    laptop(c, "user", -430, 120, { label: "you" });
+    pill(c, -430, -34, "“Summarise this recipe page”", { icon: "user" });
+    c.bot = robot(c, "agent", -120, 50, { label: "agent" });
+    cube(c, "shield", 120, 190, { tone: "mint", icon: "shield", title: "Approval", sub: "human check", s: 80, h: 60 });
+    cube(c, "mail", 380, 170, { tone: "peach", icon: "mail", title: "Email tool", sub: "send", s: 80, h: 60 });
+    c.block = pill(c, 250, 120, "BLOCKED", { kind: "warn", icon: "x" });
+    arrow(c, "a1", "user", "agent", { label: "summarise" });
+    arrow(c, "a2", "agent", "web", { label: "fetch page", bend: -16 });
+    arrow(c, "a3", "web", "agent", { kind: "red", dash: true, label: "hidden instruction", bend: -30 });
+    arrow(c, "a4", "agent", "shield", { kind: "red", label: "send files → attacker@…", lo: 46 });
+    arrow(c, "a5", "shield", "mail", { kind: "red", dash: true });
+  },
+  steps: [
+    { a: ["a1"], focus: ["agent"], cap: "You ask the agent to summarise a page.", stats: { "Attack": "—", "Defence": "approval", "Result": "—" } },
+    { a: ["a2"], focus: ["web"], cap: "It fetches the page. Anyone can write on the web.", stats: { "Attack": "—", "Defence": "approval", "Result": "—" } },
+    { a: ["a3"], focus: ["agent"], cap: "A hidden line tells it to email your files. The model can't tell data from orders.", stats: { "Attack": "indirect", "Defence": "approval", "Result": "—" } },
+    { a: ["a4"], focus: ["shield"], cap: "It tries to send, but risky actions need your approval first.", stats: { "Attack": "indirect", "Defence": "approval", "Result": "—" } },
+    { a: [], focus: ["shield"], cap: "You see the recipient and reject it. Nothing leaves. Layers beat prompts.", stats: { "Attack": "indirect", "Defence": "approval", "Result": "blocked" } },
+  ],
+  onStep(c, i) { c.block.g.style.transition = "opacity .3s"; c.block.g.style.opacity = i === 4 ? 1 : 0; },
+});
+
+/* ============================================================
+   08 Voice AI pipeline
+   ============================================================ */
+scene({
+  id: "d8",
+  build(c) {
+    c.gv = gauge(c, 0, -205, "latency budget", 0);
+    mic(c, "mic", -470, 90, { label: "caller" });
+    cube(c, "stt", -230, 20, { tone: "cyan", icon: "mic", title: "Speech to text", sub: "STT", s: 92, h: 66 });
+    cube(c, "llm", 20, -40, { tone: "indigo", icon: "spark", title: "LLM", sub: "reply", s: 100, h: 76 });
+    cube(c, "tts", 270, 20, { tone: "peach", icon: "wave", title: "Text to speech", sub: "TTS", s: 92, h: 66 });
+    speaker(c, "spk", 480, 100, { label: "speaker" });
+    arrow(c, "v1", "mic", "stt", { label: "audio · 150 ms" });
+    arrow(c, "v2", "stt", "llm", { label: "text · 200 ms" });
+    arrow(c, "v3", "llm", "tts", { label: "tokens · 400 ms", kind: "cyan" });
+    arrow(c, "v4", "tts", "spk", { label: "audio · 200 ms", kind: "cyan" });
+  },
+  steps: [
+    { a: ["v1"], focus: ["mic"], cap: "The caller speaks. Audio streams to the server.", stats: { "STT": "—", "LLM": "—", "TTS": "—", "Total": "150 ms" } },
+    { a: ["v2"], focus: ["stt"], cap: "Speech to text (STT) turns audio into words.", stats: { "STT": "200 ms", "LLM": "—", "TTS": "—", "Total": "350 ms" } },
+    { a: ["v3"], focus: ["llm"], cap: "The LLM writes the reply. Its first token is the slowest part.", stats: { "STT": "200 ms", "LLM": "400 ms", "TTS": "—", "Total": "750 ms" } },
+    { a: ["v4"], focus: ["tts", "spk"], cap: "Text to speech (TTS) speaks it. 1,010 ms: over the 800 ms target.", stats: { "STT": "200 ms", "LLM": "400 ms", "TTS": "200 ms", "Total": "1010 ms" } },
+    { a: ["v2", "v3", "v4"], focus: ["stt", "llm", "tts"], cap: "Fix: stream every stage instead of waiting. Now it feels instant.", stats: { "STT": "90 ms", "LLM": "180 ms", "TTS": "80 ms", "Total": "490 ms" } },
+  ],
+  onStep(c, i) { const tot = [150, 350, 750, 1010, 490][i]; c.gv.set(tot / 8, tot > 800 ? "#e11d48" : ACC); },
+});
+
+/* ============================================================
+   09 The context window
+   ============================================================ */
+scene({
+  id: "d9",
+  build(c) {
+    c.gw = gauge(c, 0, -205, "8,192 tokens used", 0);
+    const L = 560, D = 170, Hh = 46, [wx, wy] = WI(0, 70);
+    c.tray = { L, D, Hh, wx, wy };
+    shadow(c, c.layer, wx, wy, L, D);
+    // floor + back walls
+    S("path", { d: roundPoly([P(wx - L / 2, wy - D / 2), P(wx + L / 2, wy - D / 2), P(wx + L / 2, wy + D / 2), P(wx - L / 2, wy + D / 2)], 14), fill: "#eef0f7", class: "ink", "stroke-width": 2.6 }, c.layer);
+    S("path", { d: roundPoly([P(wx - L / 2, wy - D / 2), P(wx + L / 2, wy - D / 2), P(wx + L / 2, wy - D / 2, Hh), P(wx - L / 2, wy - D / 2, Hh)], 8), fill: "#e1e4ef", class: "ink", "stroke-width": 2.4 }, c.layer);
+    S("path", { d: roundPoly([P(wx - L / 2, wy - D / 2), P(wx - L / 2, wy + D / 2), P(wx - L / 2, wy + D / 2, Hh), P(wx - L / 2, wy - D / 2, Hh)], 8), fill: "#d6d9e6", class: "ink", "stroke-width": 2.4 }, c.layer);
+    c.blocks = S("g", {}, c.layer);
+    // front walls (low, glassy)
+    S("path", { d: roundPoly([P(wx - L / 2, wy + D / 2), P(wx + L / 2, wy + D / 2), P(wx + L / 2, wy + D / 2, 22), P(wx - L / 2, wy + D / 2, 22)], 6), fill: "rgba(255,255,255,.55)", class: "ink", "stroke-width": 2.6 }, c.layer);
+    S("path", { d: roundPoly([P(wx + L / 2, wy - D / 2), P(wx + L / 2, wy + D / 2), P(wx + L / 2, wy + D / 2, 22), P(wx + L / 2, wy - D / 2, 22)], 6), fill: "rgba(255,255,255,.45)", class: "ink", "stroke-width": 2.6 }, c.layer);
+    pill(c, -470, 250, "system", { icon: "layers", size: 12 }).g.querySelector(".ic").setAttribute("fill", TONE.slate[2]);
+    pill(c, -330, 250, "tools", { icon: "plug", size: 12 }).g.querySelector(".ic").setAttribute("fill", TONE.indigo[2]);
+    pill(c, -200, 250, "history", { icon: "doc", size: 12 }).g.querySelector(".ic").setAttribute("fill", TONE.cyan[2]);
+    pill(c, -50, 250, "reply space", { icon: "spark", size: 12, kind: "ghost" });
+    c.drop = pill(c, -470, -120, "oldest turn dropped", { kind: "warn", icon: "x", size: 12 });
+  },
+  steps: Array.from({ length: 11 }, (_, k) => {
+    const turns = k, used = 800 + 600 + Math.min(turns, 8) * 420;
+    return { a: [], focus: [], dur: 2000, cap: k === 0 ? "Every request starts with the system prompt and tool definitions." : turns <= 8 ? `Turn ${turns}: the whole history is re-sent, so the tray fills up.` : `Turn ${turns}: full. The oldest turn falls out to make room.`, stats: { "Turns": String(turns), "History": `${Math.min(turns, 8) * 420} tok`, "Used": `${used.toLocaleString()} tok` } };
+  }),
+  onStep(c, i) {
+    const { L, D, wx, wy } = c.tray; c.blocks.innerHTML = "";
+    const cols = 13, s = 34, gap = (L - 30) / cols;
+    const hist = Math.min(i, 8), first = Math.max(0, i - 8);
+    const colType = (k) => k === 0 ? "slate" : k <= 2 ? "indigo" : k <= 10 ? (k - 3 < hist ? "cyan" : null) : "ghost";
+    const cells = [];
+    for (let k = 0; k < cols; k++) for (let r = 0; r < 3; r++) cells.push([k, r]);
+    cells.sort((a, b) => (a[0] + a[1] * 1.5) - (b[0] + b[1] * 1.5));
+    for (const [k, r] of cells) {
+      const t = colType(k); if (!t) continue;
+      const bx = wx - L / 2 + 22 + k * gap + s / 2, by = wy - D / 2 + 30 + r * 52;
+      const sc = P(bx, by);
+      if (t === "ghost") { S("path", { d: roundPoly([P(bx - s / 2, by - s / 2, 2), P(bx + s / 2, by - s / 2, 2), P(bx + s / 2, by + s / 2, 2), P(bx - s / 2, by + s / 2, 2)], 6), fill: "rgba(91,77,255,.06)", stroke: ACC, "stroke-width": 2, "stroke-dasharray": "4 4" }, c.blocks); continue; }
+      const tone = t === "cyan" && ((k - 3 + first) % 2) ? "mint" : t;
+      cube(c, null, sc[0], sc[1], { s, h: 26, tone, r: 6, parent: c.blocks, ring: false, noShadow: true });
+    }
+    const used = 800 + 600 + hist * 420; c.gw.set(used / 81.92, used > 7000 ? "#e11d48" : ACC);
+    c.gw && (c.gw.label = used);
+    c.drop.g.style.transition = "opacity .3s"; c.drop.g.style.opacity = i > 8 ? 1 : 0;
+  },
+});
+
+/* ============================================================
+   10 Cost, caching & routing
+   ============================================================ */
+scene({
+  id: "d10",
+  build(c) {
+    cube(c, "small", 330, -110, { tone: "mint", icon: "bolt", title: "Small model", sub: "cheap · fast", s: 80, h: 58 });
+    crowd(c, "users", -440, 70, { label: "10k requests / day" });
+    cylinder(c, "cache", -170, 60, { tone: "lemon", icon: "bolt", r: 46, h: 66 });
+    c.hit = gauge(c, -170, -110, "cache hits", 0, { color: "#16a34a" });
+    cube(c, "router", 70, 70, { tone: "slate", icon: "branch", title: "Router", sub: "easy or hard?", s: 86, h: 62 });
+    cube(c, "large", 340, 200, { tone: "indigo", icon: "spark", title: "Large model", sub: "smart · costly", s: 104, h: 80 });
+    arrow(c, "r", "users", "cache", { label: "request" });
+    arrow(c, "h", "cache", "users", { kind: "cyan", dash: true, label: "cached answer", bend: 70, lo: 30 });
+    arrow(c, "m", "cache", "router", { label: "miss" });
+    arrow(c, "e", "router", "small", { label: "easy · 80%", bend: -10 });
+    arrow(c, "d", "router", "large", { label: "hard · 20%", bend: 10 });
+  },
+  steps: [
+    { a: ["r", "m", "d"], focus: ["large"], cap: "Naive: every request goes to the large model. Illustrative numbers.", stats: { "Cost / month": "$4,500", "Avg latency": "2.4 s", "Cache hits": "0%" } },
+    { a: ["r", "h"], focus: ["cache"], cap: "Add a cache: repeated questions are answered without any model.", stats: { "Cost / month": "$2,700", "Avg latency": "1.5 s", "Cache hits": "40%" } },
+    { a: ["m"], focus: ["router"], cap: "Misses go to a router that judges how hard the request is.", stats: { "Cost / month": "$2,700", "Avg latency": "1.5 s", "Cache hits": "40%" } },
+    { a: ["e"], focus: ["small"], cap: "Easy requests, most of them, go to a small, cheap, fast model.", stats: { "Cost / month": "$900", "Avg latency": "0.8 s", "Cache hits": "40%" } },
+    { a: ["d"], focus: ["large"], cap: "Only hard ones reach the large model. Same quality, a fraction of the bill.", stats: { "Cost / month": "$900", "Avg latency": "0.8 s", "Cache hits": "40%" } },
+  ],
+  onStep(c, i) { c.hit.set(i === 0 ? 0 : 40); },
+});
+</script>
+</body>
+</html>

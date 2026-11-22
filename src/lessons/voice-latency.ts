@@ -44,7 +44,7 @@ export const voiceLatency: Lesson = {
     {
       short: "The budget", chapter: "setup", title: "Spend a latency budget",
       body: [
-        "The **latency budget** adds up every stage: capture and network, speech recognition, the model's first token, speech synthesis, playback.",
+        "The **latency budget** adds up every stage: capture and network, speech-to-text (STT), the model's first token, text-to-speech (TTS), playback.",
         "Aim for about 800 ms from the end of speech to the first sound. Tap a stage to apply its fix.",
       ],
       callout: { kind: "tip", text: "All numbers here are illustrative. Measure your own pipeline." },
