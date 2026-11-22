@@ -51,6 +51,8 @@ export type Panel =
   | { kind: "fusion"; a: { label: string; items: { id: string; text: string }[] }; b: { label: string; items: { id: string; text: string }[] }; k?: number }
   | { kind: "rerank"; query: string; items: { id: string; text: string; first: number; rerank: number }[]; keep?: number }
   | { kind: "graph"; nodes: { id: string; label: string; x: number; y: number; tone?: Tone }[]; edges: { a: string; b: string; label: string }[]; questions: { text: string; path: string[]; answer: string; vectorHits?: string[] }[] }
+  | { kind: "trace"; events: { type: "user" | "think" | "tool" | "result" | "agent" | "warn" | "approve"; label?: string; text: string }[] }
+  | { kind: "defenses"; attack: string; harm: string; layers: { id: string; label: string; blocks: boolean; note: string; on?: boolean }[] }
   | { kind: "chunking"; strategy?: "fixed" | "sentence" | "paragraph"; size?: number; overlap?: number; controls?: ("strategy" | "size" | "overlap")[] };
 
 export interface Word { id: string; text: string; angle: number; radius: number }

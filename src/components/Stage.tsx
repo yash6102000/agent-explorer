@@ -126,7 +126,7 @@ export function Stage({ lesson, step, poked, onPoke }: { lesson: Lesson; step: S
         <g key={z.label} className={`zone tone-${z.tone}${z.on ? " on" : ""}`}>
           <rect x={z.x0} y={z.y0} width={z.x1 - z.x0} height={z.y1 - z.y0} rx="22" className="zone-box" />
           <text x={z.x0 + 20} y={z.y0 + 25} className="zone-t">{z.label}</text>
-          {z.sub && <text x={z.x0 + 20 + z.label.length * 8.6 + 12} y={z.y0 + 25} className="zone-s">{z.sub}</text>}
+          {z.sub && 20 + z.label.length * 8.6 + 12 + z.sub.length * 6.8 + 16 <= z.x1 - z.x0 && <text x={z.x0 + 20 + z.label.length * 8.6 + 12} y={z.y0 + 25} className="zone-s">{z.sub}</text>}
         </g>
       ))}
 

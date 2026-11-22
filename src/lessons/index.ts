@@ -1,56 +1,88 @@
 import type { Lesson, Module } from "../types";
+import { a2a } from "./a2a";
+import { advancedRetrieval } from "./advanced-retrieval";
+import { agentLoop } from "./agent-loop";
+import { agenticRag } from "./agentic-rag";
+import { aiArchitectures } from "./ai-architectures";
+import { attention } from "./attention";
+import { chunking } from "./chunking";
+import { computerUse } from "./computer-use";
+import { dataLeakage } from "./data-leakage";
+import { embeddings } from "./embeddings";
+import { graphRag } from "./graph-rag";
+import { hallucinations } from "./hallucinations";
+import { humanInLoop } from "./human-in-loop";
+import { hybridSearch } from "./hybrid-search";
+import { jailbreaks } from "./jailbreaks";
+import { leastPrivilege } from "./least-privilege";
+import { mcp } from "./mcp";
+import { memory } from "./memory";
+import { multiAgent } from "./multi-agent";
+import { multimodalRag } from "./multimodal-rag";
+import { nextToken } from "./next-token";
+import { planning } from "./planning";
+import { promptInjection } from "./prompt-injection";
+import { prompting } from "./prompting";
+import { queryTransform } from "./query-transform";
+import { ragArchitectures } from "./rag-architectures";
+import { ragEval } from "./rag-eval";
+import { ragFailures } from "./rag-failures";
+import { reasoning } from "./reasoning";
+import { redTeaming } from "./red-teaming";
+import { reranking } from "./reranking";
+import { selfRag } from "./self-rag";
 import { simpleRag } from "./simple-rag";
 import { tokensContext } from "./tokens-context";
-import { embeddings } from "./embeddings";
-import { whatIsRag } from "./what-is-rag";
-import { chunking } from "./chunking";
-import { whatIsLlm } from "./what-is-llm";
-import { aiArchitectures } from "./ai-architectures";
+import { toolCalling } from "./tool-calling";
 import { training } from "./training";
-import { ragFailures } from "./rag-failures";
-import { ragEval } from "./rag-eval";
-import { ragArchitectures } from "./rag-architectures";
-import { multimodalRag } from "./multimodal-rag";
-import { agenticRag } from "./agentic-rag";
-import { selfRag } from "./self-rag";
-import { graphRag } from "./graph-rag";
-import { advancedRetrieval } from "./advanced-retrieval";
-import { hallucinations } from "./hallucinations";
-import { attention } from "./attention";
-import { nextToken } from "./next-token";
-import { reranking } from "./reranking";
-import { hybridSearch } from "./hybrid-search";
-import { queryTransform } from "./query-transform";
 import { vectorSearch } from "./vector-search";
-import { reasoning } from "./reasoning";
-import { prompting } from "./prompting";
+import { whatIsAgent } from "./what-is-agent";
+import { whatIsLlm } from "./what-is-llm";
+import { whatIsRag } from "./what-is-rag";
+import { workflowsVsAgents } from "./workflows-vs-agents";
 
 export const LESSONS: Record<string, Lesson> = {
+  [a2a.id]: a2a,
+  [advancedRetrieval.id]: advancedRetrieval,
+  [agentLoop.id]: agentLoop,
+  [agenticRag.id]: agenticRag,
+  [aiArchitectures.id]: aiArchitectures,
+  [attention.id]: attention,
+  [chunking.id]: chunking,
+  [computerUse.id]: computerUse,
+  [dataLeakage.id]: dataLeakage,
+  [embeddings.id]: embeddings,
+  [graphRag.id]: graphRag,
+  [hallucinations.id]: hallucinations,
+  [humanInLoop.id]: humanInLoop,
+  [hybridSearch.id]: hybridSearch,
+  [jailbreaks.id]: jailbreaks,
+  [leastPrivilege.id]: leastPrivilege,
+  [mcp.id]: mcp,
+  [memory.id]: memory,
+  [multiAgent.id]: multiAgent,
+  [multimodalRag.id]: multimodalRag,
+  [nextToken.id]: nextToken,
+  [planning.id]: planning,
+  [promptInjection.id]: promptInjection,
+  [prompting.id]: prompting,
+  [queryTransform.id]: queryTransform,
+  [ragArchitectures.id]: ragArchitectures,
+  [ragEval.id]: ragEval,
+  [ragFailures.id]: ragFailures,
+  [reasoning.id]: reasoning,
+  [redTeaming.id]: redTeaming,
+  [reranking.id]: reranking,
+  [selfRag.id]: selfRag,
   [simpleRag.id]: simpleRag,
   [tokensContext.id]: tokensContext,
-  [embeddings.id]: embeddings,
-  [whatIsRag.id]: whatIsRag,
-  [chunking.id]: chunking,
-  [whatIsLlm.id]: whatIsLlm,
-  [aiArchitectures.id]: aiArchitectures,
+  [toolCalling.id]: toolCalling,
   [training.id]: training,
-  [ragFailures.id]: ragFailures,
-  [ragEval.id]: ragEval,
-  [ragArchitectures.id]: ragArchitectures,
-  [multimodalRag.id]: multimodalRag,
-  [agenticRag.id]: agenticRag,
-  [selfRag.id]: selfRag,
-  [graphRag.id]: graphRag,
-  [advancedRetrieval.id]: advancedRetrieval,
-  [hallucinations.id]: hallucinations,
-  [attention.id]: attention,
-  [nextToken.id]: nextToken,
-  [reranking.id]: reranking,
-  [hybridSearch.id]: hybridSearch,
-  [queryTransform.id]: queryTransform,
   [vectorSearch.id]: vectorSearch,
-  [reasoning.id]: reasoning,
-  [prompting.id]: prompting,
+  [whatIsAgent.id]: whatIsAgent,
+  [whatIsLlm.id]: whatIsLlm,
+  [whatIsRag.id]: whatIsRag,
+  [workflowsVsAgents.id]: workflowsVsAgents,
 };
 
 export const MODULES: Module[] = [
@@ -84,24 +116,24 @@ export const MODULES: Module[] = [
     { id: "rag-failures", title: "RAG Failure Modes", ready: true },
   ] },
   { id: "agents", num: "03", title: "Agents", tone: "violet", icon: "laptop", blurb: "Loops, tools and memory. Models that act.", lessons: [
-    { id: "what-is-agent", title: "What is an Agent?" },
-    { id: "workflows-vs-agents", title: "Workflows vs Agents" },
-    { id: "agent-loop", title: "The Agent Loop" },
-    { id: "tool-calling", title: "Tool Calling" },
-    { id: "mcp", title: "MCP: Tools as a Protocol" },
-    { id: "planning", title: "Planning & ReAct" },
-    { id: "memory", title: "Memory & Compaction" },
-    { id: "multi-agent", title: "Subagents & Multi-Agent Patterns" },
-    { id: "a2a", title: "Agent-to-Agent (A2A)" },
-    { id: "computer-use", title: "Computer Use & Browser Agents" },
-    { id: "human-in-loop", title: "Human in the Loop" },
+    { id: "what-is-agent", title: "What is an Agent?", ready: true },
+    { id: "workflows-vs-agents", title: "Workflows vs Agents", ready: true },
+    { id: "agent-loop", title: "The Agent Loop", ready: true },
+    { id: "tool-calling", title: "Tool Calling", ready: true },
+    { id: "mcp", title: "MCP: Tools as a Protocol", ready: true },
+    { id: "planning", title: "Planning & ReAct", ready: true },
+    { id: "memory", title: "Memory & Compaction", ready: true },
+    { id: "multi-agent", title: "Subagents & Multi-Agent Patterns", ready: true },
+    { id: "a2a", title: "Agent-to-Agent (A2A)", ready: true },
+    { id: "computer-use", title: "Computer Use & Browser Agents", ready: true },
+    { id: "human-in-loop", title: "Human in the Loop", ready: true },
   ] },
   { id: "safety", num: "04", title: "Safety", tone: "rose", icon: "rack", blurb: "What can go wrong and how to stop it.", lessons: [
-    { id: "prompt-injection", title: "Prompt Injection" },
-    { id: "jailbreaks", title: "Jailbreaks & Guardrails" },
-    { id: "least-privilege", title: "Sandboxing & Least Privilege" },
-    { id: "data-leakage", title: "Data Leakage & Privacy" },
-    { id: "red-teaming", title: "Red-Teaming Your App" },
+    { id: "prompt-injection", title: "Prompt Injection", ready: true },
+    { id: "jailbreaks", title: "Jailbreaks & Guardrails", ready: true },
+    { id: "least-privilege", title: "Sandboxing & Least Privilege", ready: true },
+    { id: "data-leakage", title: "Data Leakage & Privacy", ready: true },
+    { id: "red-teaming", title: "Red-Teaming Your App", ready: true },
   ] },
   { id: "models", num: "05", title: "Models in Practice", tone: "blue", icon: "tower", blurb: "Choose, adapt and run the right model.", lessons: [
     { id: "choosing-model", title: "Choosing a Model" },

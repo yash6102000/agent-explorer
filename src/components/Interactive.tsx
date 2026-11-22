@@ -153,3 +153,52 @@ export function GraphPanel({ panel }: P<"graph">) {
     </div>
   );
 }
+
+/* ---- Trace: step through what an agent does, one event at a time ---- */
+const TRACE_ICON: Record<string, string> = { user: "User", think: "Thinks", tool: "Calls tool", result: "Result", agent: "Agent", warn: "Warning", approve: "Approval" };
+export function TracePanel({ panel }: P<"trace">) {
+  const total = panel.events.length;
+  const [n, setN] = useState(Math.min(1, total));
+  const shown = panel.events.slice(0, n);
+  return (
+    <div className="tr">
+      <div className="tr-list">
+        {shown.map((e, i) => (
+          <div key={i} className={`tr-e ${e.type}${i === n - 1 ? " cur" : ""}`}>
+            <span className="tr-k">{e.label ?? TRACE_ICON[e.type]}</span>
+            <span className="tr-t">{e.text}</span>
+          </div>
+        ))}
+      </div>
+      <div className="smp-act">
+        <button className="btn sm" onClick={() => setN(Math.min(total, n + 1))} disabled={n >= total}>{n >= total ? "Done" : "Next event →"}</button>
+        <button className="btn sm" onClick={() => setN(1)}>Replay</button>
+        <span className="tr-c">{n} / {total}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ---- Defenses: switch protection layers on and off, see if the attack lands ---- */
+export function DefensesPanel({ panel }: P<"defenses">) {
+  const [on, setOn] = useState<Record<string, boolean>>(() => Object.fromEntries(panel.layers.map((l) => [l.id, !!l.on])));
+  const blockers = panel.layers.filter((l) => on[l.id] && l.blocks);
+  const active = panel.layers.filter((l) => on[l.id]).length;
+  return (
+    <div className="df">
+      <div className="df-atk"><i>Attack</i>{panel.attack}</div>
+      <div className="df-layers">
+        {panel.layers.map((l) => (
+          <button key={l.id} className={`df-l${on[l.id] ? " on" : ""}`} onClick={() => setOn({ ...on, [l.id]: !on[l.id] })} aria-pressed={!!on[l.id]}>
+            <span className="df-sw" /><b>{l.label}</b><small>{l.note}</small>
+          </button>
+        ))}
+      </div>
+      <div className={`df-v ${blockers.length ? "ok" : "bad"}`}>
+        {blockers.length
+          ? <><b>Blocked</b> by {blockers.map((b) => b.label).join(" + ")}.</>
+          : <><b>{active ? "Still gets through" : "Gets through"}</b>: {panel.harm}</>}
+      </div>
+    </div>
+  );
+}

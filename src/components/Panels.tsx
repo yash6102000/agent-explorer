@@ -3,7 +3,7 @@ import { vec } from "../lib/rag";
 import { Rich } from "./Rich";
 import { TokensPanel, WindowPanel, WordMapPanel } from "./Foundations";
 import { ChunkPanel } from "./Retrieval";
-import { SamplerPanel, AttentionPanel, FusionPanel, RerankPanel, GraphPanel } from "./Interactive";
+import { SamplerPanel, AttentionPanel, FusionPanel, RerankPanel, GraphPanel, TracePanel, DefensesPanel } from "./Interactive";
 
 const f2 = (n: number) => n.toFixed(2);
 
@@ -65,6 +65,8 @@ export function PanelView({ panel, lesson, ctx: ctxIn, setK, onQuery }: {
     case "fusion": return <FusionPanel panel={panel} />;
     case "rerank": return <RerankPanel panel={panel} />;
     case "graph": return <GraphPanel panel={panel} />;
+    case "trace": return <TracePanel panel={panel} />;
+    case "defenses": return <DefensesPanel panel={panel} />;
     case "cards":
       return (
         <div className="cards">

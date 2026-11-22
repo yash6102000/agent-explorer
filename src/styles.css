@@ -395,6 +395,30 @@ kbd{font:500 11px var(--mono);border:1px solid var(--line2);border-radius:5px;pa
 .gr-n.on circle{fill:var(--s)}.gr-n.on text{fill:var(--ink)}
 .gr-n.vh circle{stroke-dasharray:3 2;stroke-width:2.5}
 
+/* trace + defenses panels */
+.tr-list{display:flex;flex-direction:column;gap:6px}
+.tr-e{display:grid;grid-template-columns:88px 1fr;gap:10px;align-items:baseline;padding:8px 12px;border:1px solid var(--line);border-radius:10px;background:var(--panel);font-size:13px;line-height:1.45;animation:trin .3s both}
+@keyframes trin{from{opacity:0;transform:translateY(5px)}}
+.tr-k{font:600 10.5px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tr-e.cur{border-color:color-mix(in srgb,var(--accent) 45%,var(--line2));box-shadow:0 0 0 3px var(--ring)}
+.tr-e.tool .tr-k{color:var(--violet-s)}.tr-e.result .tr-k{color:var(--green-s)}.tr-e.think .tr-k{color:var(--orange-s)}.tr-e.user .tr-k{color:var(--blue-s)}
+.tr-e.warn{border-color:color-mix(in srgb,var(--rose-s) 55%,var(--line2));background:color-mix(in srgb,var(--rose-s) 8%,var(--panel))}.tr-e.warn .tr-k{color:var(--rose-s)}
+.tr-e.approve{border-color:color-mix(in srgb,var(--green-s) 55%,var(--line2));background:color-mix(in srgb,var(--green-s) 8%,var(--panel))}.tr-e.approve .tr-k{color:var(--green-s)}
+.tr-e.think .tr-t{font-style:italic;color:var(--muted)}
+.tr-c{margin-left:auto;font:500 11.5px var(--mono);color:var(--dim)}
+.df-atk{padding:10px 14px;border:1px solid color-mix(in srgb,var(--rose-s) 45%,var(--line2));border-radius:12px;background:color-mix(in srgb,var(--rose-s) 7%,var(--panel));font:12.5px/1.55 var(--mono);margin-bottom:10px}
+.df-atk i{display:block;font:600 10.5px var(--mono);font-style:normal;text-transform:uppercase;letter-spacing:.08em;color:var(--rose-s);margin-bottom:2px}
+.df-layers{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.df-l{display:grid;grid-template-columns:34px 1fr;grid-template-rows:auto auto;column-gap:10px;text-align:left;padding:8px 12px;border:1px solid var(--line2);border-radius:12px;background:var(--panel);transition:.2s}
+.df-l b{font:600 13.5px var(--body)}.df-l small{grid-column:2;font-size:12px;color:var(--muted);line-height:1.4}
+.df-sw{grid-row:1/3;align-self:center;width:30px;height:18px;border-radius:99px;background:var(--line2);position:relative;transition:.2s}
+.df-sw::after{content:"";position:absolute;left:2px;top:2px;width:14px;height:14px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:.2s}
+.df-l.on{border-color:color-mix(in srgb,var(--green-s) 55%,var(--line2));background:color-mix(in srgb,var(--green-s) 7%,var(--panel))}
+.df-l.on .df-sw{background:var(--green-s)}.df-l.on .df-sw::after{left:14px}
+.df-v{padding:10px 14px;border-radius:12px;font-size:13.5px;border:1px solid var(--line2)}
+.df-v.ok{border-color:color-mix(in srgb,var(--green-s) 55%,transparent);background:color-mix(in srgb,var(--green-s) 10%,var(--panel))}
+.df-v.bad{border-color:color-mix(in srgb,var(--rose-s) 55%,transparent);background:color-mix(in srgb,var(--rose-s) 9%,var(--panel))}
+
 /* ===== panel refinements ===== */
 .chip{border-radius:8px;padding:4px 12px;font-size:12.5px;background:var(--panel);border-color:var(--line2)}
 .chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg)}
